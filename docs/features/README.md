@@ -5,7 +5,7 @@ the project entry points, build instructions, roadmap, and licensing.
 
 | Area | Documents |
 | --- | --- |
-| AI control and orchestration | [Capability Registry](CAPABILITY_REGISTRY.md), [Creator Pipeline](CREATOR_PIPELINE.md), [Workflow Presets](WORKFLOW_PRESETS.md), [AI Asset Manifest](AI_ASSET_MANIFEST.md), [Local Edit Agent](LOCAL_EDIT_AGENT.md), [Film Context](FILM_CONTEXT.md) |
+| AI control and orchestration | [Capability Registry](CAPABILITY_REGISTRY.md), [Creator Pipeline](CREATOR_PIPELINE.md), [Workflow Presets](WORKFLOW_PRESETS.md), [AI Asset Manifest](AI_ASSET_MANIFEST.md), [Local Edit Agent](LOCAL_EDIT_AGENT.md), [Film Context](FILM_CONTEXT.md), [Gemini Provider](GEMINI_PROVIDER.md) |
 | Media and editorial intelligence | [Media Intelligence](MEDIA_INTELLIGENCE.md), [Dialogue Intelligence](DIALOGUE_INTELLIGENCE.md), [Bad Take Review](BAD_TAKE_REVIEW.md), [Beat Sync](BEAT_SYNC.md), [Rhythm Intelligence](RHYTHM_INTELLIGENCE.md), [Smart Montage](SMART_MONTAGE.md), [Highlight Intelligence](HIGHLIGHT_INTELLIGENCE.md), [B-roll Planner](BROLL_PLANNER.md) |
 | Audio and speech | [Audio Intelligence](AUDIO_INTELLIGENCE.md), [Audio Backends](AUDIO_BACKENDS.md), [Speech Backends](SPEECH_BACKENDS.md), [Demucs Backend](DEMUCS_BACKEND.md), [Auto Ducking](AUTO_DUCKING.md) |
 | Captions | [Caption Intelligence](CAPTION_INTELLIGENCE.md), [Animated Captions](ANIMATED_CAPTIONS.md), [Speaker Captions](SPEAKER_CAPTIONS.md) |

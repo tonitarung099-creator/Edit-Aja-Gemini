@@ -1,6 +1,6 @@
-# Update P5 Edit Aja
+# Edit Aja Gemini
 
-**Update P5 Edit Aja** is the experimental, expanded version of the Edit Aja video editor. It starts from the complete Edit Aja Phase 5 baseline built on Kdenlive/MLT, while the original `Edit-Aja` repository can remain stable.
+**Edit Aja Gemini** is the Gemini-focused continuation of Update P5 Edit Aja. It starts from the complete P5 baseline built on Kdenlive/MLT, while the original P5 repository can remain stable.
 
 The project is designed around four editing paths that share the same native timeline foundation:
 
@@ -21,6 +21,10 @@ The repository retains the complete Phase 1–5 Edit Aja work:
 - Edit Aja branding and Windows packaging workflow.
 
 The internal `kdenlive_*` names intentionally remain for Phase 5 API compatibility.
+
+## Gemini-first provider
+
+This repository keeps the existing P5 AI Agent/tool registry but is moving the cloud AI path to Gemini. The first Gemini layer lives under `tools/gemini_provider/`: it supports up to 100 configured credentials, masks secrets, treats Gemini quota as project-scoped, and discovers usable models dynamically instead of hard-coding model names. Native Qt integration into the primary right-hand AI Agent is tracked in `docs/features/GEMINI_PROVIDER.md` and `ROADMAP.md`.
 
 ## Phase 6: AI Edit JSON
 
@@ -122,6 +126,6 @@ Upstream Kdenlive: https://github.com/KDE/kdenlive
 
 Original baseline repository: https://github.com/tonitarung099-creator/Edit-Aja
 
-This repository: https://github.com/tonitarung099-creator/Update-P5-Edit-Aja
+This repository: https://github.com/tonitarung099-creator/Edit-Aja-Gemini
 
 Third-party engines/models added in later phases must receive a separate license/dependency review before they are bundled or distributed.
