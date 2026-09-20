@@ -53,6 +53,7 @@ jobs:
               tests.test_creator_pipeline
               tests.test_film_context
               tests.test_film_context_native_patch
+              tests.test_gemini_provider
               tests.test_local_edit_agent
               tests.test_local_edit_native_patch
               tests.test_local_edit_scene_undo_patch
