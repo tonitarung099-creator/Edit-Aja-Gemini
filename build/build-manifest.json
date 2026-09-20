@@ -74,7 +74,7 @@
         "patches/gemini-native.patch.bz2.b64.01",
         "patches/gemini-native.patch.bz2.b64.02"
       ],
-      "sha256": "13a1a6b2e23b2af7b5a578bd940405a854e28717237a97c3b7da96fc6564b37d",
+      "sha256": "a6466d26d3c973479ac77ca0e391f6ab0b3e9365ba8c9f24cde152f1c11de15d",
       "output": "craft/editaja/gemini-native.patch"
     }
   ],
