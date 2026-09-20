@@ -1,0 +1,66 @@
+{
+  "title": "Documentary Creator Pipeline",
+  "workdir": "./creator-output",
+  "variables": {
+    "TRANSCRIPT": "./transcript.json",
+    "RHYTHM": "./rhythm.json"
+  },
+  "stages": [
+    {
+      "id": "captions",
+      "script": "tools/caption_intelligence/caption_intelligence.py",
+      "args": [
+        "{{TRANSCRIPT}}",
+        "--mode", "phrase",
+        "--format", "ai-edit",
+        "--output", "{{workdir}}/captions.edit.json"
+      ],
+      "outputs": {
+        "plan": "{{workdir}}/captions.edit.json"
+      },
+      "plan_output": "{{captions.plan}}"
+    },
+    {
+      "id": "broll",
+      "script": "tools/broll_planner/broll_planner.py",
+      "args": [
+        "plan", "{{TRANSCRIPT}}",
+        "--output", "{{workdir}}/broll-plan.json"
+      ],
+      "outputs": {
+        "plan_data": "{{workdir}}/broll-plan.json"
+      }
+    },
+    {
+      "id": "broll-placeholders",
+      "script": "tools/broll_planner/broll_planner.py",
+      "args": [
+        "placeholders", "{{broll.plan_data}}",
+        "--output", "{{workdir}}/broll-placeholders.edit.json"
+      ],
+      "outputs": {
+        "plan": "{{workdir}}/broll-placeholders.edit.json"
+      },
+      "plan_output": "{{broll-placeholders.plan}}"
+    },
+    {
+      "id": "beat-cuts",
+      "script": "tools/beat_sync/beat_sync.py",
+      "args": [
+        "{{RHYTHM}}",
+        "--every", "4",
+        "--output", "{{workdir}}/beat-cuts.edit.json"
+      ],
+      "outputs": {
+        "plan": "{{workdir}}/beat-cuts.edit.json"
+      },
+      "plan_output": "{{beat-cuts.plan}}",
+      "optional": true
+    }
+  ],
+  "compose": {
+    "title": "Documentary Final Edit",
+    "output": "final.edit.json",
+    "collapse_saves": true
+  }
+}
