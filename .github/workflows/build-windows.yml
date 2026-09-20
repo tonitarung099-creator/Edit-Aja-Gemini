@@ -1,0 +1,119 @@
+name: Build Update P5 Edit Aja for Windows
+
+on:
+  workflow_run:
+    workflows: ["P5 Quality Gates"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+    # Only eligible build jobs enter this queue. Let the active build finish;
+    # a newer verified commit may replace a pending build, not a running one.
+    concurrency:
+      group: update-p5-edit-aja-windows
+      cancel-in-progress: false
+    runs-on: windows-2022
+    timeout-minutes: 360
+    env:
+      CRAFT_ROOT: C:\CraftRoot
+      CRAFT_BUILD_TYPE: RelWithDebInfo
+
+    steps:
+      - name: Checkout verified P5 commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Prepare pinned build inputs
+        shell: pwsh
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          python scripts/prepare_build_inputs.py
+
+      - name: Reconstruct and verify corresponding source
+        id: corresponding_source
+        shell: pwsh
+        run: ./scripts/windows/reconstruct-source.ps1
+
+      - name: Bootstrap pinned KDE Craft with MinGW x64
+        shell: pwsh
+        run: ./scripts/windows/bootstrap-craft.ps1
+
+      - name: Patch Craft gettext MinGW libxml2 linking
+        shell: pwsh
+        run: ./scripts/windows/patch-gettext.ps1
+
+      - name: Install Update P5 Edit Aja Craft blueprint
+        shell: pwsh
+        run: ./scripts/windows/install-blueprint.ps1
+
+      - name: Install dependencies from KDE binary cache
+        shell: pwsh
+        run: ./scripts/windows/invoke-craft.ps1 -Mode install-deps
+
+      - name: Install Windows packager
+        shell: pwsh
+        run: ./scripts/windows/invoke-craft.ps1 -Mode install-packager
+
+      - name: Check packaging dependencies before compilation
+        shell: pwsh
+        run: ./scripts/windows/prepare-package-images.ps1 -DependenciesOnly
+
+      - name: Build Update P5 Edit Aja
+        shell: pwsh
+        run: ./scripts/windows/invoke-craft.ps1 -Mode build
+
+      - name: Prepare dependency images for packaging
+        shell: pwsh
+        run: ./scripts/windows/prepare-package-images.ps1
+
+      - name: Package Update P5 Edit Aja
+        shell: pwsh
+        run: ./scripts/windows/invoke-craft.ps1 -Mode package
+
+      - name: Collect Windows package
+        id: windows_package
+        shell: pwsh
+        run: ./scripts/windows/collect-package.ps1
+
+      - name: Upload Update P5 Edit Aja Windows package
+        if: ${{ success() && steps.windows_package.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Update-P5-Edit-Aja-Windows-x64
+          path: artifacts/windows/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Smoke test packaged Windows installer and app
+        shell: pwsh
+        run: ./scripts/windows/smoke-test-package.ps1
+
+      - name: Functional smoke test packaged editor
+        shell: pwsh
+        run: ./scripts/windows/functional-smoke-package.ps1
+
+      - name: Upload packaged-app smoke diagnostics
+        if: ${{ always() && steps.windows_package.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Update-P5-Edit-Aja-Smoke-Diagnostics
+          path: artifacts/smoke/**
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload verified corresponding source
+        if: ${{ always() && steps.corresponding_source.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Update-P5-Edit-Aja-Source
+          path: artifacts/Update-P5-Edit-Aja-Source.zip
+          if-no-files-found: error
+          retention-days: 14
