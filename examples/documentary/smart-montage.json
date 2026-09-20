@@ -1,0 +1,11 @@
+{
+  "track_name": "AI B-roll Montage",
+  "cycle_assets": false,
+  "default_scale": 108,
+  "assets": [
+    {"path": "./visuals/japan-01.jpg", "scale_percent": 112},
+    {"path": "./visuals/japan-02.jpg", "scale_percent": 108},
+    {"path": "./visuals/japan-03.mp4"},
+    {"path": "./visuals/japan-04.jpg", "scale_percent": 115}
+  ]
+}

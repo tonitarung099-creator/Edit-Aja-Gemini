@@ -1,0 +1,10 @@
+{
+  "objects": [
+    {
+      "id": "person",
+      "frame_idx": 0,
+      "points": [[960, 540]],
+      "labels": [1]
+    }
+  ]
+}

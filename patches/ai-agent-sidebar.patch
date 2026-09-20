@@ -1,0 +1,166 @@
+diff --git a/src/aiassistant/aiassistantwidget.cpp b/src/aiassistant/aiassistantwidget.cpp
+index 655b8de..c7b313f 100644
+--- a/src/aiassistant/aiassistantwidget.cpp
++++ b/src/aiassistant/aiassistantwidget.cpp
+@@ -37,6 +37,8 @@
+ #include <QPushButton>
+ #include <QProcess>
+ #include <QRegularExpression>
++#include <QScrollArea>
++#include <QSizePolicy>
+ #include <QSet>
+ #include <QStandardPaths>
+ #include <QSettings>
+@@ -226,9 +228,26 @@ AiAssistantWidget::AiAssistantWidget(QWidget *parent)
+     setObjectName(QStringLiteral("aiAssistantWidget"));
+     registerTools();
+ 
+-    auto *layout = new QVBoxLayout(this);
++    setMinimumWidth(320);
++    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
++
++    auto *rootLayout = new QVBoxLayout(this);
++    rootLayout->setContentsMargins(0, 0, 0, 0);
++    rootLayout->setSpacing(0);
++
++    auto *scrollArea = new QScrollArea(this);
++    scrollArea->setObjectName(QStringLiteral("aiAssistantScrollArea"));
++    scrollArea->setWidgetResizable(true);
++    scrollArea->setFrameShape(QFrame::NoFrame);
++    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
++
++    auto *content = new QWidget(scrollArea);
++    content->setObjectName(QStringLiteral("aiAssistantContent"));
++    auto *layout = new QVBoxLayout(content);
+     layout->setContentsMargins(12, 12, 12, 12);
+     layout->setSpacing(10);
++    scrollArea->setWidget(content);
++    rootLayout->addWidget(scrollArea);
+ 
+     auto *title = new QLabel(i18n("AI Agent"), this);
+     title->setObjectName(QStringLiteral("aiAssistantTitle"));
+@@ -243,6 +262,34 @@ AiAssistantWidget::AiAssistantWidget(QWidget *parent)
+     description->setWordWrap(true);
+     layout->addWidget(description);
+ 
++    auto *agentGroup = new QGroupBox(i18n("AI Agent — Main Control"), this);
++    agentGroup->setObjectName(QStringLiteral("aiAgentMainControl"));
++    auto *agentLayout = new QGridLayout(agentGroup);
++
++    auto *promptLabel = new QLabel(i18n("Tell the agent what to edit"), agentGroup);
++    agentLayout->addWidget(promptLabel, 0, 0, 1, 2);
++
++    m_prompt = new QLineEdit(agentGroup);
++    m_prompt->setPlaceholderText(i18n("Example: remove pauses, add captions, then prepare export"));
++    m_prompt->setClearButtonEnabled(true);
++    agentLayout->addWidget(m_prompt, 1, 0, 1, 2);
++
++    m_runButton = new QPushButton(i18n("Run Agent"), agentGroup);
++    m_runButton->setProperty("primaryAction", true);
++    agentLayout->addWidget(m_runButton, 2, 0);
++
++    m_cancelButton = new QPushButton(i18n("Cancel"), agentGroup);
++    m_cancelButton->setEnabled(false);
++    agentLayout->addWidget(m_cancelButton, 2, 1);
++
++    m_output = new QTextBrowser(agentGroup);
++    m_output->setOpenExternalLinks(false);
++    m_output->setMinimumHeight(220);
++    m_output->setPlaceholderText(i18n("Agent tool calls and results will appear here."));
++    agentLayout->addWidget(m_output, 3, 0, 1, 2);
++
++    layout->addWidget(agentGroup);
++
+     auto *quickGrid = new QGridLayout;
+     quickGrid->setHorizontalSpacing(8);
+     quickGrid->setVerticalSpacing(8);
+@@ -560,33 +607,6 @@ AiAssistantWidget::AiAssistantWidget(QWidget *parent)
+         m_mcpStatus->setText(i18n("MCP bridge could not start."));
+     }
+ 
+-    auto *separator = new QFrame(this);
+-    separator->setFrameShape(QFrame::HLine);
+-    separator->setFrameShadow(QFrame::Sunken);
+-    layout->addWidget(separator);
+-
+-    auto *promptLabel = new QLabel(i18n("Tell the agent what to edit"), this);
+-    layout->addWidget(promptLabel);
+-
+-    m_prompt = new QLineEdit(this);
+-    m_prompt->setPlaceholderText(i18n("Example: inspect available actions, add captions, then open export"));
+-    m_prompt->setClearButtonEnabled(true);
+-    layout->addWidget(m_prompt);
+-
+-    m_runButton = new QPushButton(i18n("Run Agent"), this);
+-    m_runButton->setProperty("primaryAction", true);
+-    layout->addWidget(m_runButton);
+-
+-    m_cancelButton = new QPushButton(i18n("Cancel Agent"), this);
+-    m_cancelButton->setEnabled(false);
+-    layout->addWidget(m_cancelButton);
+-
+-    m_output = new QTextBrowser(this);
+-    m_output->setOpenExternalLinks(false);
+-    m_output->setMinimumHeight(170);
+-    m_output->setPlaceholderText(i18n("Agent tool calls and results will appear here."));
+-    layout->addWidget(m_output, 1);
+-
+     connect(m_runButton, &QPushButton::clicked, this, &AiAssistantWidget::runAgent);
+     connect(m_cancelButton, &QPushButton::clicked, m_agent, &OpenAiCompatibleAgent::cancel);
+     connect(m_prompt, &QLineEdit::returnPressed, this, &AiAssistantWidget::runAgent);
+@@ -604,7 +624,8 @@ AiAssistantWidget::AiAssistantWidget(QWidget *parent)
+         "#aiAssistantWidget QPushButton[quickTool=\"true\"] { padding: 7px 10px; border-radius: 6px; }"
+         "#aiAssistantWidget QPushButton[primaryAction=\"true\"] { font-weight: 600; padding: 8px 12px; border-radius: 6px; }"
+         "#aiAssistantWidget QLineEdit { padding: 7px 9px; border-radius: 6px; }"
+-        "#aiAssistantWidget QTextBrowser { border-radius: 6px; padding: 6px; }"));
++        "#aiAssistantWidget QTextBrowser { border-radius: 6px; padding: 6px; }"
++        "#aiAssistantWidget QGroupBox#aiAgentMainControl { font-weight: 600; margin-top: 6px; }"));
+ }
+ 
+ void AiAssistantWidget::configureEditorAccess(ActionCatalogProvider actionCatalog, ActionExecutor actionExecutor, PanelCatalogProvider panelCatalog,
+diff --git a/src/mainwindow.cpp b/src/mainwindow.cpp
+index 111ce43..3bde5ec 100644
+--- a/src/mainwindow.cpp
++++ b/src/mainwindow.cpp
+@@ -601,9 +601,9 @@ void MainWindow::init()
+     // and the localhost MCP bridge. New editor tools become available to every
+     // connected agent without coupling Kdenlive to a single model vendor.
+     m_aiAssistant = new AiAssistantWidget(this);
+-    m_aiAssistantDock = addDock(i18n("AI Assistant"), QStringLiteral("ai_assistant"), m_aiAssistant, KDDockWidgets::Location_None, m_effectStackDock);
+-    m_effectStackDock->addDockWidgetAsTab(m_aiAssistantDock);
+-    m_aiAssistantDock->close();
++    m_aiAssistantDock = addDock(i18n("AI Agent"), QStringLiteral("ai_assistant"), m_aiAssistant, KDDockWidgets::Location_None, m_effectStackDock);
++    m_aiAssistantDock->open();
++    m_aiAssistantDock->setAsCurrentTab();
+ 
+     connect(m_aiAssistant, &AiAssistantWidget::requestAction, this, [this](const QString &actionName) {
+         QAction *action = actionCollection()->action(actionName);
+@@ -3016,7 +3016,7 @@ void MainWindow::setupCreatorWorkspace()
+             m_effectListDock->setAsCurrentTab();
+         }
+     });
+-    addWorkspaceButton(i18n("AI Tools"), QStringLiteral("tools-wizard"), [this]() {
++    addWorkspaceButton(i18n("AI Agent"), QStringLiteral("tools-wizard"), [this]() {
+         if (m_aiAssistantDock) {
+             m_aiAssistantDock->open();
+             m_aiAssistantDock->setAsCurrentTab();
+@@ -3133,6 +3133,19 @@ void MainWindow::setupCreatorWorkspace()
+ void MainWindow::finishUiSetup()
+ {
+     pCore->restoreLayout();
++
++    // Keep AI Agent as the primary right sidebar after restoring older workspace layouts.
++    // Existing layouts predate the ai_assistant dock and may otherwise leave it floating,
++    // hidden, or attached to an unrelated group.
++    if (m_aiAssistantDock && m_effectStackDock) {
++        auto *rightGroup = m_effectStackDock->asGroupController();
++        if (!rightGroup || !rightGroup->containsDockWidget(m_aiAssistantDock->asDockWidgetController())) {
++            m_effectStackDock->addDockWidgetAsTab(m_aiAssistantDock);
++        }
++        m_aiAssistantDock->open();
++        m_aiAssistantDock->setAsCurrentTab();
++    }
++
+     Q_EMIT pCore->closeSplash();
+     setAutoSaveSettings();
+     QObject::disconnect(pCore.get(), &Core::GUISetupDone, this, nullptr);

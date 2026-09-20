@@ -1,0 +1,38 @@
+{
+  "title": "Japan documentary data graphics",
+  "graphics": [
+    {
+      "type": "bar_chart",
+      "title": "Population by example category",
+      "at": 18,
+      "duration": 5,
+      "items": [
+        {"label": "A", "value": 80, "display": "80"},
+        {"label": "B", "value": 55, "display": "55"},
+        {"label": "C", "value": 35, "display": "35"}
+      ]
+    },
+    {
+      "type": "timeline",
+      "title": "Japan — selected milestones",
+      "at": 44,
+      "duration": 6,
+      "events": [
+        {"year": 1603, "label": "1603", "text": "Tokugawa"},
+        {"year": 1868, "label": "1868", "text": "Meiji"},
+        {"year": 1945, "label": "1945", "text": "Postwar"},
+        {"year": 1964, "label": "1964", "text": "Tokyo"}
+      ]
+    },
+    {
+      "type": "map",
+      "title": "Japan in East Asia",
+      "at": 70,
+      "duration": 5,
+      "points": [
+        {"lat": 35.6762, "lon": 139.6503, "label": "Tokyo"},
+        {"lat": 34.6937, "lon": 135.5023, "label": "Osaka"}
+      ]
+    }
+  ]
+}

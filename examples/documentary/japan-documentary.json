@@ -1,0 +1,32 @@
+{
+  "title": "Japan documentary graphics",
+  "operations": [
+    {
+      "type": "chapter_card",
+      "title": "JEPANG",
+      "subtitle": "Dari Kepulauan Terpencil Menjadi Kekuatan Dunia",
+      "at": 1.0,
+      "duration": 4.0
+    },
+    {
+      "type": "lower_third",
+      "name": "Restorasi Meiji",
+      "role": "1868",
+      "at": 22.0,
+      "duration": 4.0
+    },
+    {
+      "type": "broll_placeholder",
+      "label": "Peta Jepang era Tokugawa",
+      "at": 31.0,
+      "duration": 5.0
+    },
+    {
+      "type": "quote_card",
+      "quote": "Sebuah kutipan penting ditempatkan di sini.",
+      "source": "Sumber / tokoh",
+      "at": 46.0,
+      "duration": 5.0
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "title": "Editorial graphics demo",
+  "templates": [
+    {
+      "type": "stat_reveal",
+      "title": "A turning point",
+      "value": "1868",
+      "subtitle": "The Meiji Restoration",
+      "source": "Historical reference",
+      "at": 12,
+      "duration": 4
+    },
+    {
+      "type": "comparison",
+      "title": "Before and after",
+      "left": {"label": "Before", "value": "A", "detail": "Earlier condition"},
+      "right": {"label": "After", "value": "B", "detail": "Later condition"},
+      "at": 30,
+      "duration": 4
+    },
+    {
+      "type": "callout",
+      "kicker": "Why it matters",
+      "headline": "A major structural shift",
+      "body": "Use this area for one concise supporting sentence.",
+      "at": 46,
+      "duration": 4
+    },
+    {
+      "type": "progress",
+      "title": "Industrial transition",
+      "value": 72,
+      "label": "illustrative progress",
+      "at": 60,
+      "duration": 4
+    }
+  ]
+}

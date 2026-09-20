@@ -1,0 +1,24 @@
+diff --git a/src/aiassistant/agentipcserver.h b/src/aiassistant/agentipcserver.h
+index 7f25e1a..ca8beef 100644
+--- a/src/aiassistant/agentipcserver.h
++++ b/src/aiassistant/agentipcserver.h
+@@ -7,6 +7,7 @@
+ 
+ #include <QByteArray>
+ #include <QHash>
++#include <QJsonObject>
+ #include <QObject>
+ #include <QString>
+ 
+diff --git a/src/mainwindow.cpp b/src/mainwindow.cpp
+index fbcc7ce..1bc1ecc 100644
+--- a/src/mainwindow.cpp
++++ b/src/mainwindow.cpp
+@@ -1782,6 +1782,6 @@ void MainWindow::init()
+             if (toolName == QLatin1String("kdenlive_get_project_info")) {
+                 KdenliveDoc *project = pCore->currentDoc();
+-                const auto profile = pCore->getCurrentProfile();
++                const auto &profile = pCore->getCurrentProfile();
+                 if (!project || !profile) {
+                     return errorResult(QStringLiteral("No active project/profile"));
+                 }

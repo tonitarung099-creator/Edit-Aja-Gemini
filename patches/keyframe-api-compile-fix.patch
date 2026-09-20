@@ -1,0 +1,54 @@
+--- a/src/mainwindow.cpp
++++ b/src/mainwindow.cpp
+@@ -8,6 +8,7 @@
+ #include "assets/assetpanel.hpp"
+ #include "assets/model/assetparametermodel.hpp"
+ #include "assets/keyframes/model/keyframemodel.hpp"
++#include "assets/keyframes/model/keyframemodellist.hpp"
+ #include "aiassistant/aiassistantwidget.h"
+ #include "audiomixer/mixermanager.hpp"
+ #include "bin/clipcreator.hpp"
+@@ -1893,12 +1894,13 @@
+                 transformEffect->prepareKeyframes();
+                 const QModelIndex rectIndex = transformEffect->getParamIndexFromName(QStringLiteral("rect"));
+                 const auto keyframes = transformEffect->getKeyframeModel();
+-                KeyframeModel *rectModel = keyframes ? keyframes->getKeyModel(QPersistentModelIndex(rectIndex)) : nullptr;
++                const QPersistentModelIndex persistentRectIndex(rectIndex);
++                KeyframeModel *rectModel = keyframes ? keyframes->getKeyModel(persistentRectIndex) : nullptr;
+                 if (!rectIndex.isValid() || !rectModel) {
+                     return errorResult(QStringLiteral("Transform rectangle does not expose editable keyframes"));
+                 }
+ 
+-                if (!rectModel->removeAllKeyframes()) {
++                if (!keyframes->removeAllKeyframes()) {
+                     return errorResult(QStringLiteral("Could not reset existing Transform rectangle keyframes"));
+                 }
+                 const QString easing = arguments.value(QStringLiteral("easing")).toString(QStringLiteral("smooth")).toLower();
+@@ -1907,17 +1909,24 @@
+                 const int startFrame = sourceIn;
+                 const int endFrame = sourceIn + endLocalFrame;
+                 const double resolvedEndScale = reachesTarget ? targetScale : endScale;
+-                if (!rectModel->addKeyframe(GenTime(startFrame, fps), motionType, rectForScale(startScale))) {
++                auto setRectKeyframe = [&](int frame, KeyframeType::KeyframeEnum type, const QString &value) {
++                    const GenTime position(frame, fps);
++                    if (!keyframes->addKeyframe(position, type)) {
++                        return false;
++                    }
++                    return keyframes->updateKeyframe(position, QVariant(value), -1, persistentRectIndex);
++                };
++                if (!setRectKeyframe(startFrame, motionType, rectForScale(startScale))) {
+                     return errorResult(QStringLiteral("Could not create the start Transform keyframe"));
+                 }
+-                if (!rectModel->addKeyframe(GenTime(endFrame, fps), motionType, rectForScale(resolvedEndScale))) {
++                if (!setRectKeyframe(endFrame, motionType, rectForScale(resolvedEndScale))) {
+                     return errorResult(QStringLiteral("Could not create the end Transform keyframe"));
+                 }
+ 
+                 int holdFrame = -1;
+                 if (holdAfterTarget && reachesTarget && endLocalFrame < lastLocalFrame) {
+                     holdFrame = sourceIn + lastLocalFrame;
+-                    if (!rectModel->addKeyframe(GenTime(holdFrame, fps), KeyframeType::Linear, rectForScale(targetScale))) {
++                    if (!setRectKeyframe(holdFrame, KeyframeType::Linear, rectForScale(targetScale))) {
+                         return errorResult(QStringLiteral("Could not create the Transform hold keyframe"));
+                     }
+                 }
