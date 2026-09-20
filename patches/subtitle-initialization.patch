@@ -1,0 +1,17 @@
+--- a/src/mainwindow.cpp
++++ b/src/mainwindow.cpp
+@@ -1457,2 +1457,4 @@
+             if (toolName == QLatin1String("kdenlive_add_subtitle")) {
++                // Initialize the subtitle track just like the native UI action.
++                showSubtitleTrack();
+                 const auto subtitles = model->getSubtitleModel();
+@@ -1561,2 +1563,4 @@
+             if (toolName == QLatin1String("kdenlive_import_subtitles")) {
++                // Initialize the subtitle track just like the native UI action.
++                showSubtitleTrack();
+                 const auto subtitles = model->getSubtitleModel();
+@@ -2464,2 +2468,4 @@
+             if (toolName == QLatin1String("kdenlive_add_subtitle_batch")) {
++                // Initialize the subtitle track just like the native UI action.
++                showSubtitleTrack();
+                 const auto subtitles = model->getSubtitleModel();

@@ -1,0 +1,22 @@
+diff --git a/src/mainwindow.cpp b/src/mainwindow.cpp
+index cc2b178..111ce43 100644
+--- a/src/mainwindow.cpp
++++ b/src/mainwindow.cpp
+@@ -2068,10 +2068,15 @@ void MainWindow::init()
+                     }
+                     const bool saveCopy = arguments.value(QStringLiteral("save_copy")).toBool(true);
+                     const bool overwrite = arguments.value(QStringLiteral("overwrite")).toBool(false);
+-                    if (output.exists() && !overwrite) {
++                    const bool outputExists = output.exists();
++                    if (outputExists && !overwrite) {
+                         return errorResult(QStringLiteral("Project output already exists; pass overwrite=true to replace it"));
+                     }
+-                    success = pCore->projectManager()->saveFileAs(output.absoluteFilePath(), overwrite, saveCopy);
++                    // ProjectManager::saveFileAs() uses its second argument to mean that the target
++                    // is an existing project file that is being overwritten. Passing the caller's
++                    // overwrite permission for a brand-new path can trigger the upgraded-project
++                    // backup/message-box path and block a headless agent call indefinitely.
++                    success = pCore->projectManager()->saveFileAs(output.absoluteFilePath(), outputExists && overwrite, saveCopy);
+                 }
+                 if (!success) {
+                     return errorResult(QStringLiteral("Kdenlive could not save the project"));
