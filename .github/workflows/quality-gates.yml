@@ -291,3 +291,15 @@ jobs:
 
       - name: Reconstruct and verify pinned P5 source
         run: python scripts/reconstruct_source.py --output corresponding-source
+
+      - name: Upload pre-Gemini source diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Gemini-Pre-Apply-Source
+          path: |
+            corresponding-source/src/aiassistant/CMakeLists.txt
+            corresponding-source/src/aiassistant/aiassistantwidget.cpp
+            corresponding-source/src/aiassistant/aiassistantwidget.h
+          if-no-files-found: error
+          retention-days: 1
