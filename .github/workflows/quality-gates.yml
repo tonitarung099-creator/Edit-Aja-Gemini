@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: p5-quality-${{ github.ref }}
+  group: p5-quality-${{ github.ref }}-${{ github.sha }}
   cancel-in-progress: true
 
 jobs:
