@@ -1,0 +1,289 @@
+{
+  "format": "update-p5-capability-registry",
+  "version": 1,
+  "capabilities": [
+    {
+      "id": "ai-edit-json",
+      "name": "AI Edit JSON",
+      "category": "editing",
+      "script": "tools/ai_edit/update_p5_ai_edit.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "media-intelligence",
+      "name": "Media Intelligence",
+      "category": "analysis",
+      "script": "tools/media_intelligence/media_intelligence.py",
+      "executables": [
+        "ffmpeg",
+        "ffprobe"
+      ],
+      "python_modules": []
+    },
+    {
+      "id": "rhythm-intelligence",
+      "name": "Rhythm Intelligence",
+      "category": "analysis",
+      "script": "tools/rhythm_intelligence/rhythm_intelligence.py",
+      "executables": [
+        "ffmpeg"
+      ],
+      "python_modules": []
+    },
+    {
+      "id": "caption-intelligence",
+      "name": "Caption Intelligence",
+      "category": "captions",
+      "script": "tools/caption_intelligence/caption_intelligence.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "animated-captions",
+      "name": "Animated Captions",
+      "category": "captions",
+      "script": "tools/animated_captions/animated_captions.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "speaker-captions",
+      "name": "Speaker Captions",
+      "category": "captions",
+      "script": "tools/speaker_captions/speaker_captions.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "audio-intelligence",
+      "name": "Audio Intelligence",
+      "category": "audio",
+      "script": "tools/audio_intelligence/audio_intelligence.py",
+      "executables": [
+        "ffmpeg"
+      ],
+      "python_modules": []
+    },
+    {
+      "id": "auto-ducking",
+      "name": "Auto Ducking",
+      "category": "audio",
+      "script": "tools/auto_ducking/auto_ducking.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "dialogue-intelligence",
+      "name": "Dialogue Intelligence",
+      "category": "speech",
+      "script": "tools/dialogue_intelligence/dialogue_intelligence.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "visual-intelligence",
+      "name": "Visual Intelligence / Smart Reframe",
+      "category": "visual",
+      "script": "tools/visual_intelligence/visual_intelligence.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "opencv-face-track",
+      "name": "OpenCV Face Tracking Backend",
+      "category": "visual-backend",
+      "script": "tools/visual_intelligence/visual_intelligence.py",
+      "executables": [],
+      "python_modules": [
+        "cv2"
+      ],
+      "optional": true
+    },
+    {
+      "id": "documentary-toolkit",
+      "name": "Documentary Toolkit",
+      "category": "graphics",
+      "script": "tools/documentary_toolkit/documentary_toolkit.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "documentary-graphics",
+      "name": "Documentary Graphics",
+      "category": "graphics",
+      "script": "tools/documentary_graphics/documentary_graphics.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "beat-sync",
+      "name": "Beat Sync Editing",
+      "category": "editing",
+      "script": "tools/beat_sync/beat_sync.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "smart-montage",
+      "name": "Smart Montage",
+      "category": "editing",
+      "script": "tools/smart_montage/smart_montage.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "whispercpp",
+      "name": "whisper.cpp Local Speech Backend",
+      "category": "speech-backend",
+      "script": "tools/speech_backends/whispercpp.py",
+      "executables": [
+        "ffmpeg",
+        "whisper-cli"
+      ],
+      "python_modules": [],
+      "optional": true
+    },
+    {
+      "id": "deepfilternet",
+      "name": "DeepFilterNet Audio Cleanup Backend",
+      "category": "audio-backend",
+      "script": "tools/audio_backends/deepfilternet.py",
+      "executables": [
+        "ffmpeg",
+        "deep-filter"
+      ],
+      "python_modules": [],
+      "optional": true
+    },
+    {
+      "id": "sam2",
+      "name": "SAM 2 Video Segmentation Backend",
+      "category": "visual-backend",
+      "script": "tools/segmentation_backends/sam2_video.py",
+      "executables": [
+        "ffmpeg",
+        "ffprobe"
+      ],
+      "python_modules": [
+        "torch",
+        "torchvision",
+        "sam2"
+      ],
+      "optional": true
+    },
+    {
+      "id": "mask-effects",
+      "name": "Mask Effects",
+      "category": "visual",
+      "script": "tools/mask_effects/mask_effects.py",
+      "executables": [
+        "ffmpeg",
+        "ffprobe"
+      ],
+      "python_modules": []
+    },
+    {
+      "id": "bad-take-review",
+      "name": "Bad Take Review",
+      "category": "speech",
+      "script": "tools/bad_take_review/bad_take_review.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "broll-planner",
+      "name": "Transcript B-roll Planner",
+      "category": "editing",
+      "script": "tools/broll_planner/broll_planner.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "motion-graphics-templates",
+      "name": "Motion Graphics Templates",
+      "category": "graphics",
+      "script": "tools/motion_graphics_templates/motion_graphics_templates.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "creator-pipeline",
+      "name": "Creator Pipeline",
+      "category": "orchestration",
+      "script": "tools/creator_pipeline/creator_pipeline.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "highlight-intelligence",
+      "name": "Highlight Intelligence",
+      "category": "editing",
+      "script": "tools/highlight_intelligence/highlight_intelligence.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "workflow-presets",
+      "name": "Creator Workflow Presets",
+      "category": "orchestration",
+      "script": "tools/workflow_presets/workflow_presets.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "ai-asset-manifest",
+      "name": "AI Asset Manifest",
+      "category": "assets",
+      "script": "tools/asset_manifest/asset_manifest.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "demucs",
+      "name": "Demucs Stem Separation Backend",
+      "category": "audio-backend",
+      "script": "tools/audio_backends/demucs.py",
+      "executables": [],
+      "python_modules": [
+        "demucs"
+      ],
+      "optional": true
+    },
+    {
+      "id": "local-edit-agent",
+      "name": "Local Edit Agent",
+      "category": "orchestration",
+      "script": "tools/local_edit_agent/local_edit_agent.py",
+      "executables": [],
+      "python_modules": []
+    },
+    {
+      "id": "film-context",
+      "name": "Film Context",
+      "category": "analysis",
+      "script": "tools/film_context/film_context.py",
+      "executables": [
+        "ffmpeg",
+        "ffprobe"
+      ],
+      "python_modules": [],
+      "optional": true
+    },
+    {
+      "id": "film-context-openclip",
+      "name": "Film Context OpenCLIP Visual Semantic Backend",
+      "category": "visual-backend",
+      "script": "tools/film_context/film_context.py",
+      "executables": [
+        "ffmpeg"
+      ],
+      "python_modules": [
+        "open_clip",
+        "torch",
+        "PIL"
+      ],
+      "optional": true
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "format": "update-p5-ai-edit",
+  "version": 1,
+  "metadata": {
+    "title": "Documentary starter example",
+    "generated_by": "ChatGPT"
+  },
+  "variables": {
+    "MAIN_VIDEO": "./input.mp4"
+  },
+  "safety": {
+    "checkpoint": true,
+    "checkpoint_label": "before-documentary-ai-edit"
+  },
+  "steps": [
+    {
+      "id": "video-track",
+      "tool": "kdenlive_add_track",
+      "arguments": {"audio": false, "name": "AI Main Video"}
+    },
+    {
+      "id": "import-main",
+      "tool": "kdenlive_import_media",
+      "arguments": {"path": {"$var": "MAIN_VIDEO"}}
+    },
+    {
+      "id": "insert-main",
+      "tool": "kdenlive_insert_bin_clip",
+      "arguments": {
+        "bin_id": {"$ref": "import-main.result.bin_id"},
+        "track_id": {"$ref": "video-track.result.track_id"},
+        "position_seconds": 0,
+        "use_targets": false
+      }
+    },
+    {
+      "id": "jump-cuts",
+      "tool": "kdenlive_remove_ranges",
+      "arguments": {
+        "track_ids": [{"$ref": "video-track.result.track_id"}],
+        "ranges": [
+          {"start_seconds": 8.4, "end_seconds": 10.1},
+          {"start_seconds": 24.0, "end_seconds": 25.2}
+        ],
+        "lift_only": false,
+        "dry_run": false
+      }
+    },
+    {
+      "id": "title",
+      "tool": "kdenlive_create_title",
+      "arguments": {
+        "text": "SEJARAH JEPANG",
+        "name": "Opening title",
+        "track_id": {"$ref": "video-track.result.track_id"},
+        "position_seconds": 0.6,
+        "duration_seconds": 3.4,
+        "font_size": 72,
+        "bold": true
+      }
+    },
+    {
+      "id": "zoom-example",
+      "tool": "kdenlive_set_transform",
+      "arguments": {
+        "clip_id": {
+          "$clip_at": {
+            "track_id": {"$ref": "video-track.result.track_id"},
+            "position_seconds": 13.0
+          }
+        },
+        "scale_percent": 112
+      }
+    },
+    {
+      "id": "subtitles",
+      "tool": "kdenlive_add_subtitle_batch",
+      "arguments": {
+        "segments": [
+          {"start_seconds": 1.0, "end_seconds": 3.2, "text": "Jepang mengalami perubahan besar sepanjang sejarahnya."},
+          {"start_seconds": 4.0, "end_seconds": 6.0, "text": "Kisahnya dimulai jauh sebelum era modern."}
+        ],
+        "layer": 0
+      }
+    },
+    {
+      "id": "save",
+      "tool": "kdenlive_save_project",
+      "arguments": {}
+    }
+  ]
+}

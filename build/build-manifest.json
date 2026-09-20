@@ -1,0 +1,175 @@
+{
+  "schema_version": 1,
+  "upstream": {
+    "repository": "https://github.com/KDE/kdenlive.git",
+    "commit": "c3d8a38c04470f6726b21485fc488f2cd2921654"
+  },
+  "craft": {
+    "repository": "https://github.com/KDE/craft.git",
+    "revision": "64de6f938a2244df7201e1a2731eb50c3d31d4a2",
+    "bootstrap_url": "https://raw.githubusercontent.com/KDE/craft/64de6f938a2244df7201e1a2731eb50c3d31d4a2/setup/CraftBootstrap.py"
+  },
+  "patches": [
+    {
+      "name": "phase5",
+      "sources": [
+        "patches/phase5.patch.bz2.b64.00",
+        "patches/phase5.patch.bz2.b64.01",
+        "patches/phase5.patch.bz2.b64.02",
+        "patches/phase5.patch.bz2.b64.03",
+        "patches/phase5.patch.bz2.b64.04.00",
+        "patches/phase5.patch.bz2.b64.04.01",
+        "patches/phase5.patch.bz2.b64.04.02",
+        "patches/phase5.patch.bz2.b64.05.00",
+        "patches/phase5.patch.bz2.b64.05.01",
+        "patches/phase5.patch.bz2.b64.05.02"
+      ],
+      "sha256": "682be7bcb5afd875eb5f347ecd8f644be5fa1273e175c027ddd1d67491ac9a65",
+      "output": "craft/editaja/phase5.patch"
+    },
+    {
+      "name": "phase6",
+      "sources": [
+        "patches/phase6-ai-edit-json.patch.bz2.b64"
+      ],
+      "sha256": "975a7c253f125fc5350aec2f835c2eeed0d7c3b2a3cfe5766810d12244985f37",
+      "output": "craft/editaja/phase6.patch"
+    },
+    {
+      "name": "phase12",
+      "sources": [
+        "patches/phase12-local-edit-native.patch.bz2.b64"
+      ],
+      "sha256": "d8729f8d3cbe09e7818d5d5a4ab8cc690a45ac9f6982fdf98d0ded6732665652",
+      "output": "craft/editaja/phase12.patch"
+    },
+    {
+      "name": "phase13",
+      "sources": [
+        "patches/phase13-local-edit-scene-undo.patch.bz2.b64"
+      ],
+      "sha256": "a553eb5f1213e055a95bd8653039e978e6ba950db2ff627e7b471aa176e9f39b",
+      "output": "craft/editaja/phase13.patch"
+    },
+    {
+      "name": "phase14",
+      "sources": [
+        "patches/phase14-local-edit-preview-history.patch.bz2.b64"
+      ],
+      "sha256": "864aa6d7aeee21a965df407c1be2b9da7dde744cc065eccb698d7e5fdca7c248",
+      "output": "craft/editaja/phase14.patch"
+    },
+    {
+      "name": "phase15",
+      "sources": [
+        "patches/phase15-film-context-native.patch.bz2.b64"
+      ],
+      "sha256": "a8dc28c9e679d65d0551f997515ee0603983e373d1ab545def8d7fd5593e217a",
+      "output": "craft/editaja/phase15.patch"
+    }
+  ],
+  "apply_chain": [
+    {
+      "name": "phase5",
+      "path": "craft/editaja/phase5.patch",
+      "strip": 2,
+      "ignore_space_change": true
+    },
+    {
+      "name": "build-fixes",
+      "path": "patches/build-fixes.patch",
+      "strip": 1,
+      "check": true
+    },
+    {
+      "name": "phase6",
+      "path": "craft/editaja/phase6.patch",
+      "strip": 1,
+      "ignore_space_change": true
+    },
+    {
+      "name": "phase12",
+      "path": "craft/editaja/phase12.patch",
+      "strip": 1,
+      "ignore_space_change": true
+    },
+    {
+      "name": "phase13",
+      "path": "craft/editaja/phase13.patch",
+      "strip": 1,
+      "ignore_space_change": true
+    },
+    {
+      "name": "phase14",
+      "path": "craft/editaja/phase14.patch",
+      "strip": 1,
+      "ignore_space_change": true
+    },
+    {
+      "name": "phase15",
+      "path": "craft/editaja/phase15.patch",
+      "strip": 1,
+      "ignore_space_change": true
+    },
+    {
+      "name": "subtitle-initialization",
+      "path": "patches/subtitle-initialization.patch",
+      "strip": 1,
+      "check": true
+    },
+    {
+      "name": "keyframe-api-compile-fix",
+      "path": "patches/keyframe-api-compile-fix.patch",
+      "strip": 1,
+      "check": true,
+      "ignore_space_change": true
+    },
+    {
+      "name": "save-project-agent",
+      "path": "patches/save-project-agent.patch",
+      "strip": 1,
+      "check": true
+    },
+    {
+      "name": "ai-agent-sidebar",
+      "path": "patches/ai-agent-sidebar.patch",
+      "strip": 1,
+      "check": true,
+      "ignore_space_change": true
+    }
+  ],
+  "blueprint_payloads": [
+    {
+      "source": "tools/film_context/film_context.py",
+      "destination": "craft/editaja/film_context.txt"
+    },
+    {
+      "source": "patches/build-fixes.patch",
+      "destination": "craft/editaja/build-fixes.patch"
+    },
+    {
+      "source": "patches/keyframe-api-compile-fix.patch",
+      "destination": "craft/editaja/keyframe-api-compile-fix.patch"
+    },
+    {
+      "source": "branding/editaja-logo.png.b64",
+      "destination": "craft/editaja/editaja-logo.png.b64"
+    },
+    {
+      "source": "scripts/apply_branding.py",
+      "destination": "craft/editaja/apply_branding.txt"
+    },
+    {
+      "source": "patches/subtitle-initialization.patch",
+      "destination": "craft/editaja/subtitle-initialization.patch"
+    },
+    {
+      "source": "patches/save-project-agent.patch",
+      "destination": "craft/editaja/save-project-agent.patch"
+    },
+    {
+      "source": "patches/ai-agent-sidebar.patch",
+      "destination": "craft/editaja/ai-agent-sidebar.patch"
+    }
+  ]
+}
