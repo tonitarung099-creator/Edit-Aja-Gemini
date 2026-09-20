@@ -27,6 +27,10 @@ TEXT_CHECKS = [
     ("src/mainwindow.cpp", r"Keep AI Agent as the primary right sidebar", "AI Agent post-layout docking"),
     ("src/aiassistant/aiassistantwidget.cpp", r"aiAssistantScrollArea", "Scrollable AI Agent sidebar"),
     ("src/aiassistant/aiassistantwidget.cpp", r"AI Agent — Main Control", "AI Agent primary command surface"),
+    ("src/aiassistant/geminiagent.cpp", r"x-goog-api-key", "Native Gemini API-key header"),
+    ("src/aiassistant/geminiagent.cpp", r"generateContent", "Native Gemini generateContent transport"),
+    ("src/aiassistant/geminiagent.cpp", r"functionCall", "Native Gemini function calling"),
+    ("src/aiassistant/aiassistantwidget.cpp", r"Gemini", "Native Gemini AI Agent UI"),
 ]
 
 
@@ -42,6 +46,7 @@ for tool in ("kdenlive_add_subtitle", "kdenlive_import_subtitles", "kdenlive_add
 
 REQUIRED_FILES = [
     ("src/aiassistant/aiassistantwidget.cpp", "Phase 5 AI assistant source"),
+    ("src/aiassistant/geminiagent.cpp", "Gemini native transport source"),
     ("data/scripts/filmcontext/film_context.py", "Phase 15 local Film Context backend"),
 ]
 

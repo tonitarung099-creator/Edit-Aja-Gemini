@@ -66,6 +66,16 @@
       ],
       "sha256": "a8dc28c9e679d65d0551f997515ee0603983e373d1ab545def8d7fd5593e217a",
       "output": "craft/editaja/phase15.patch"
+    },
+    {
+      "name": "gemini-native",
+      "sources": [
+        "patches/gemini-native.patch.bz2.b64.00",
+        "patches/gemini-native.patch.bz2.b64.01",
+        "patches/gemini-native.patch.bz2.b64.02"
+      ],
+      "sha256": "a6466d26d3c973479ac77ca0e391f6ab0b3e9365ba8c9f24cde152f1c11de15d",
+      "output": "craft/editaja/gemini-native.patch"
     }
   ],
   "apply_chain": [
@@ -133,6 +143,13 @@
     {
       "name": "ai-agent-sidebar",
       "path": "patches/ai-agent-sidebar.patch",
+      "strip": 1,
+      "check": true,
+      "ignore_space_change": true
+    },
+    {
+      "name": "gemini-native",
+      "path": "craft/editaja/gemini-native.patch",
       "strip": 1,
       "check": true,
       "ignore_space_change": true
