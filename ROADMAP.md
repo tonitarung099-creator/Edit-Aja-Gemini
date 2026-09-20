@@ -1,6 +1,6 @@
-# Update P5 Edit Aja roadmap
+# Edit Aja Gemini roadmap
 
-`Update P5 Edit Aja` starts from the full Edit Aja Phase 5 baseline and develops the more experimental automation/AI-native feature set here, without changing the original Edit Aja repository.
+`Edit Aja Gemini` starts from the complete Update P5 Edit Aja baseline and develops the Gemini-focused AI workflow here without changing the original P5 repository.
 
 ## Phase 6 — AI Edit JSON
 
@@ -123,3 +123,18 @@ GPU-heavy models should remain optional modules rather than mandatory editor dep
 - [ ] Richer free-form vector retrieval backend after model/dependency review.
 - [x] Text-first vision escalation to a few requested keyframes, capped at six images per tool call when vision attachment is enabled.
 - [ ] Short-clip motion escalation only when still frames are insufficient.
+
+
+## Phase 16 — Gemini-first AI Agent
+
+- [x] Dedicated Gemini provider core with no third-party Python dependency.
+- [x] Up to 100 unique configured credentials with safe key masking.
+- [x] Project-aware quota cooldown behavior for `429` responses.
+- [x] Dynamic Gemini model discovery through `models.list`.
+- [x] Unit coverage for key limits, masking, failure handling and pagination.
+- [ ] Native C++/Qt Gemini transport adapter in the built-in AI Agent.
+- [ ] Secure Windows credential persistence for multiple Gemini keys.
+- [ ] Gemini credential manager UI at the top of the right AI Agent sidebar.
+- [ ] Live model dropdown populated from the Gemini API.
+- [ ] Gemini tool/function-call bridge to the existing native `kdenlive_*` registry.
+- [ ] Windows compile, packaging, artifact and packaged-app smoke verification.
