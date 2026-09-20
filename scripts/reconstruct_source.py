@@ -31,6 +31,15 @@ def apply_patch(root: Path, source_root: Path, entry: dict) -> None:
     patch_path = (root / entry["path"]).resolve()
     strip = int(entry["strip"])
 
+    if entry["name"] == "gemini-native":
+        widget = source_root / "src" / "aiassistant" / "aiassistantwidget.cpp"
+        if widget.is_file():
+            run("git", "-C", str(source_root), "hash-object", "src/aiassistant/aiassistantwidget.cpp")
+            lines = widget.read_text(encoding="utf-8", errors="replace").splitlines()
+            print("Gemini pre-apply widget context:")
+            for number in range(252, min(271, len(lines) + 1)):
+                print(f"{number}: {lines[number - 1]}")
+
     if entry.get("check"):
         run(
             "git",
