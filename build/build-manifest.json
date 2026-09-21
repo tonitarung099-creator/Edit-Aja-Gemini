@@ -74,7 +74,7 @@
         "patches/gemini-native.patch.bz2.b64.01",
         "patches/gemini-native.patch.bz2.b64.02"
       ],
-      "sha256": "421fb479d621403ef4f15ec4697c3336161ba4b3b4c4c7e392e8228bab21c0b3",
+      "sha256": "a6466d26d3c973479ac77ca0e391f6ab0b3e9365ba8c9f24cde152f1c11de15d",
       "output": "craft/editaja/gemini-native.patch"
     }
   ],
@@ -153,6 +153,12 @@
       "strip": 1,
       "check": true,
       "ignore_space_change": true
+    },
+    {
+      "name": "gemini-hardening",
+      "path": "craft/editaja/gemini-hardening.patch",
+      "strip": 1,
+      "check": true
     }
   ],
   "blueprint_payloads": [
@@ -187,6 +193,10 @@
     {
       "source": "patches/ai-agent-sidebar.patch",
       "destination": "craft/editaja/ai-agent-sidebar.patch"
+    },
+    {
+      "source": "patches/gemini-hardening.patch",
+      "destination": "craft/editaja/gemini-hardening.patch"
     }
   ]
 }
