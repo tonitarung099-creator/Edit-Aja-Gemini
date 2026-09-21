@@ -28,6 +28,8 @@ class CraftConfigurationTests(unittest.TestCase):
         self.assertEqual(config["General"]["ABI"], "windows-gcc-x86_64")
         self.assertEqual(config["Compile"]["BuildType"], "RelWithDebInfo")
         self.assertTrue(config.getboolean("Packager", "UseCache"))
+        self.assertEqual(config["Packager"]["PackageType"], "PortablePackager")
+        self.assertEqual(config["Packager"]["7ZipArchiveType"], "zip")
 
     def test_existing_sections_and_unrelated_values_are_preserved(self):
         config = self.configure_text(
