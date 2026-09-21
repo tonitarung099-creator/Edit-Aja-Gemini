@@ -38,9 +38,17 @@ class GeminiNativePatchTests(unittest.TestCase):
             "x-goog-api-key",
             "generateContent",
             "functionCall",
+            "m_requestEpoch",
+            "requestEpoch != m_requestEpoch",
+            "Selected local frames for visual inspection",
             "src/aiassistant/geminiagent.cpp",
         ):
             self.assertIn(marker, self.patch)
+
+    def test_hardening_avoids_deprecated_sampling_and_split_vision_turns(self):
+        self.assertNotIn('QStringLiteral("temperature")', self.patch)
+        self.assertNotIn('QStringLiteral("generationConfig")', self.patch)
+        self.assertNotIn('QStringLiteral("parts"), visionParts', self.patch)
 
     def test_gemini_patch_is_last_after_sidebar(self):
         names = [item["name"] for item in self.manifest["apply_chain"]]
