@@ -33,6 +33,11 @@ TEXT_CHECKS = [
     ("src/aiassistant/geminiagent.cpp", r"m_requestEpoch", "Gemini stale-request cancellation guard"),
     ("src/aiassistant/geminiagent.cpp", r"requestEpoch != m_requestEpoch", "Gemini stale callback rejection"),
     ("src/aiassistant/aiassistantwidget.cpp", r"Gemini", "Native Gemini AI Agent UI"),
+    ("src/aiassistant/aiassistantwidget.cpp", r"Remember API keys securely on this Windows PC", "Gemini secure-storage UI"),
+    ("src/aiassistant/geminicredentialstore.cpp", r"CredEnumerateW", "Windows Gemini credential enumeration"),
+    ("src/aiassistant/geminicredentialstore.cpp", r"CredWriteW", "Windows Gemini credential write"),
+    ("src/aiassistant/geminicredentialstore.cpp", r"CredDeleteW", "Windows Gemini credential removal"),
+    ("src/aiassistant/geminicredentialstore.cpp", r"CRED_PERSIST_LOCAL_MACHINE", "Local-machine Gemini credential persistence"),
 ]
 
 
@@ -55,6 +60,7 @@ ABSENCE_CHECKS = [
 REQUIRED_FILES = [
     ("src/aiassistant/aiassistantwidget.cpp", "Phase 5 AI assistant source"),
     ("src/aiassistant/geminiagent.cpp", "Gemini native transport source"),
+    ("src/aiassistant/geminicredentialstore.cpp", "Windows Gemini credential store source"),
     ("data/scripts/filmcontext/film_context.py", "Phase 15 local Film Context backend"),
 ]
 
