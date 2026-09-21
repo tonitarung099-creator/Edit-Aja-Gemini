@@ -133,7 +133,7 @@ GPU-heavy models should remain optional modules rather than mandatory editor dep
 - [x] Dynamic Gemini model discovery through `models.list`.
 - [x] Unit coverage for key limits, masking, failure handling and pagination.
 - [x] Native C++/Qt Gemini transport adapter in the built-in AI Agent.
-- [ ] Secure Windows credential persistence for multiple Gemini keys.
+- [x] Secure Windows credential persistence for multiple Gemini keys through Windows Credential Manager.
 - [x] Gemini credential manager UI at the top of the right AI Agent sidebar.
 - [x] Live model dropdown populated from the Gemini API.
 - [x] Gemini tool/function-call bridge to the existing native `kdenlive_*` registry.
