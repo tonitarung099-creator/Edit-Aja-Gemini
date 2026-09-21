@@ -1,4 +1,4 @@
-# Building Update P5 Edit Aja
+# Building Edit Aja Gemini
 
 The reference Windows build is deliberately gated so an expensive compile does
 not become the first debugging tool.
@@ -66,9 +66,12 @@ After the quality-gated commit is checked out:
 5. `scripts/windows/install-blueprint.ps1` installs the Edit Aja blueprint.
 6. `scripts/windows/invoke-craft.ps1 -Mode install-deps` installs dependencies.
 7. `scripts/windows/invoke-craft.ps1 -Mode build` compiles the application.
-8. The same script installs the packager and creates the package.
-9. `scripts/windows/collect-package.ps1` collects the runnable artifact.
-10. GitHub uploads the Windows package and verified corresponding source.
+8. Craft uses `PortablePackager` with ZIP output to collect the app and runtime dependencies.
+9. `scripts/windows/collect-package.ps1` normalizes the result to `Edit-Aja-Gemini-Windows-Portable-x64.zip` and writes a SHA-256 file.
+10. CI extracts that ZIP and runs startup plus functional editor smoke tests directly from the portable folder.
+11. GitHub uploads the portable ZIP, checksum, smoke diagnostics, and verified corresponding source.
+
+The Windows chain intentionally does **not** install NSIS, create an installer, write registry associations, or require an uninstall step.
 
 ## Debugging boundaries
 
@@ -83,13 +86,13 @@ Use the failed gate/step as the owner of the problem:
 - **gettext** -> MinGW/libxml2 compatibility patch;
 - **Install dependencies** -> Craft dependency resolution/cache;
 - **Build** -> compiler/CMake/linker;
-- **Package** -> packager;
-- **Collect package** -> artifact discovery.
+- **Package** -> Craft PortablePackager / ZIP creation;
+- **Collect package** -> portable ZIP discovery/normalization.
 
 Avoid adding temporary repair logic directly to
 `.github/workflows/build-windows.yml`. Put fixes in the owning script and add a
 regression test when practical.
 
-Update P5 Edit Aja deliberately keeps several Kdenlive internal names and the
+Edit Aja Gemini deliberately keeps several Kdenlive internal names and the
 `.kdenlive` project extension for compatibility with existing projects,
 effects, translations, QML modules, and the Phase 5 MCP/API namespace.
