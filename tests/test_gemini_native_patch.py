@@ -42,12 +42,16 @@ class GeminiNativePatchTests(unittest.TestCase):
         ):
             self.assertIn(marker, self.patch)
 
-    def test_gemini_patch_is_last_after_sidebar(self):
+    def test_gemini_patch_follows_sidebar_and_precedes_hardening(self):
         names = [item["name"] for item in self.manifest["apply_chain"]]
-        self.assertEqual(names[-2:], ["ai-agent-sidebar", "gemini-native"])
-        self.assertEqual(self.manifest["apply_chain"][-1]["path"], "craft/editaja/gemini-native.patch")
+        self.assertEqual(names[-3:], ["ai-agent-sidebar", "gemini-native", "gemini-hardening"])
+        gemini_entry = self.manifest["apply_chain"][-2]
+        self.assertEqual(gemini_entry["path"], "craft/editaja/gemini-native.patch")
         chain_line = self.blueprint.split('self.patchToApply["editaja"] = ', 1)[1].split("\n", 1)[0]
-        self.assertTrue(chain_line.rstrip().endswith('("gemini-native.patch", 1)]'))
+        self.assertIn(
+            '("ai-agent-sidebar.patch", 1), ("gemini-native.patch", 1), ("gemini-hardening.patch", 1)]',
+            chain_line,
+        )
 
     def test_patch_changes_only_ai_assistant_native_surface(self):
         changed = []

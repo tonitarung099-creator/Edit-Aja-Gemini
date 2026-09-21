@@ -153,6 +153,12 @@
       "strip": 1,
       "check": true,
       "ignore_space_change": true
+    },
+    {
+      "name": "gemini-hardening",
+      "path": "craft/editaja/gemini-hardening.patch",
+      "strip": 1,
+      "check": true
     }
   ],
   "blueprint_payloads": [
@@ -187,6 +193,10 @@
     {
       "source": "patches/ai-agent-sidebar.patch",
       "destination": "craft/editaja/ai-agent-sidebar.patch"
+    },
+    {
+      "source": "patches/gemini-hardening.patch",
+      "destination": "craft/editaja/gemini-hardening.patch"
     }
   ]
 }

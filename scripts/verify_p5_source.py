@@ -30,6 +30,8 @@ TEXT_CHECKS = [
     ("src/aiassistant/geminiagent.cpp", r"x-goog-api-key", "Native Gemini API-key header"),
     ("src/aiassistant/geminiagent.cpp", r"generateContent", "Native Gemini generateContent transport"),
     ("src/aiassistant/geminiagent.cpp", r"functionCall", "Native Gemini function calling"),
+    ("src/aiassistant/geminiagent.cpp", r"m_requestEpoch", "Gemini stale-request cancellation guard"),
+    ("src/aiassistant/geminiagent.cpp", r"requestEpoch != m_requestEpoch", "Gemini stale callback rejection"),
     ("src/aiassistant/aiassistantwidget.cpp", r"Gemini", "Native Gemini AI Agent UI"),
 ]
 
@@ -43,6 +45,12 @@ for tool in ("kdenlive_add_subtitle", "kdenlive_import_subtitles", "kdenlive_add
         r'//[^\n]*\n\s*showSubtitleTrack\(\);\s*const auto subtitles = model->getSubtitleModel\(\);',
         f"Native subtitle initialization for {tool}",
     ))
+
+ABSENCE_CHECKS = [
+    ("src/aiassistant/geminiagent.cpp", r'QStringLiteral\("temperature"\)', "Deprecated Gemini temperature override"),
+    ("src/aiassistant/geminiagent.cpp", r'QStringLiteral\("parts"\), visionParts', "Separate Gemini vision user turn"),
+]
+
 
 REQUIRED_FILES = [
     ("src/aiassistant/aiassistantwidget.cpp", "Phase 5 AI assistant source"),
@@ -67,10 +75,22 @@ def verify(root: Path) -> None:
         if not re.search(pattern, text, flags=re.MULTILINE):
             failures.append(f"{label} verification failed in {relative}")
 
+    for relative, pattern, label in ABSENCE_CHECKS:
+        path = root / relative
+        if not path.is_file():
+            failures.append(f"{label} cannot be checked because {relative} is missing")
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if re.search(pattern, text, flags=re.MULTILINE):
+            failures.append(f"{label} must be absent from {relative}")
+
     if failures:
         raise SystemExit("\n".join(failures))
 
-    print(f"Verified {len(TEXT_CHECKS)} source markers and {len(REQUIRED_FILES)} required files.")
+    print(
+        f"Verified {len(TEXT_CHECKS)} source markers, "
+        f"{len(ABSENCE_CHECKS)} absence checks and {len(REQUIRED_FILES)} required files."
+    )
 
 
 if __name__ == "__main__":

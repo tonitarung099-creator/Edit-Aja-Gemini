@@ -1,0 +1,105 @@
+diff --git a/src/aiassistant/geminiagent.cpp b/src/aiassistant/geminiagent.cpp
+index 69f4762..f053bc9 100644
+--- a/src/aiassistant/geminiagent.cpp
++++ b/src/aiassistant/geminiagent.cpp
+@@ -149,6 +149,7 @@ void GeminiAgent::refreshModels()
+         return;
+     }
+ 
++    ++m_requestEpoch;
+     m_models.clear();
+     m_requestRetries = 0;
+     m_requestKind = RequestKind::Models;
+@@ -171,6 +172,7 @@ void GeminiAgent::run(const QString &prompt, bool fullToolAccess, int maxRounds,
+         return;
+     }
+ 
++    ++m_requestEpoch;
+     m_fullToolAccess = fullToolAccess;
+     m_attachToolImages = attachToolImages;
+     m_maxRounds = qBound(1, maxRounds, 128);
+@@ -184,6 +186,7 @@ void GeminiAgent::run(const QString &prompt, bool fullToolAccess, int maxRounds,
+ 
+ void GeminiAgent::cancel()
+ {
++    ++m_requestEpoch;
+     if (m_reply) {
+         m_reply->abort();
+         m_reply.clear();
+@@ -336,7 +339,6 @@ void GeminiAgent::postGenerateRequest()
+     QJsonObject payload{
+         {QStringLiteral("systemInstruction"), QJsonObject{{QStringLiteral("parts"), QJsonArray{QJsonObject{{QStringLiteral("text"), kSystemPrompt}}}}}},
+         {QStringLiteral("contents"), m_contents},
+-        {QStringLiteral("generationConfig"), QJsonObject{{QStringLiteral("temperature"), 0.1}}},
+     };
+     if (m_fullToolAccess && m_registry) {
+         const QJsonArray declarations = geminiFunctionDeclarations();
+@@ -350,12 +352,17 @@ void GeminiAgent::postGenerateRequest()
+     request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
+     request.setRawHeader("x-goog-api-key", m_credentials.at(credentialIndex).apiKey.toUtf8());
+ 
++    const quint64 requestEpoch = m_requestEpoch;
+     QNetworkReply *reply = m_network->post(request, QJsonDocument(payload).toJson(QJsonDocument::Compact));
+     m_reply = reply;
+-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
++    connect(reply, &QNetworkReply::finished, this, [this, reply, requestEpoch]() {
+         if (m_reply == reply) {
+             m_reply.clear();
+         }
++        if (requestEpoch != m_requestEpoch) {
++            reply->deleteLater();
++            return;
++        }
+         handleReply(reply, RequestKind::Generate);
+         reply->deleteLater();
+     });
+@@ -382,12 +389,17 @@ void GeminiAgent::postModelsRequest(const QString &pageToken)
+     request.setRawHeader("Accept", "application/json");
+     request.setRawHeader("x-goog-api-key", m_credentials.at(credentialIndex).apiKey.toUtf8());
+ 
++    const quint64 requestEpoch = m_requestEpoch;
+     QNetworkReply *reply = m_network->get(request);
+     m_reply = reply;
+-    connect(reply, &QNetworkReply::finished, this, [this, reply, pageToken]() {
++    connect(reply, &QNetworkReply::finished, this, [this, reply, pageToken, requestEpoch]() {
+         if (m_reply == reply) {
+             m_reply.clear();
+         }
++        if (requestEpoch != m_requestEpoch) {
++            reply->deleteLater();
++            return;
++        }
+         handleReply(reply, RequestKind::Models, pageToken);
+         reply->deleteLater();
+     });
+@@ -487,13 +499,16 @@ void GeminiAgent::handleGeneratePayload(const QJsonObject &payload)
+     }
+ 
+     if (hasToolCalls) {
++        if (!visionParts.isEmpty()) {
++            responseParts.push_back(
++                QJsonObject{{QStringLiteral("text"), QStringLiteral("Selected local frames for visual inspection; these are not the whole movie.")}});
++            for (const QJsonValue &visionPart : std::as_const(visionParts)) {
++                responseParts.push_back(visionPart);
++            }
++        }
+         if (!responseParts.isEmpty()) {
+             m_contents.push_back(QJsonObject{{QStringLiteral("role"), QStringLiteral("user")}, {QStringLiteral("parts"), responseParts}});
+         }
+-        if (!visionParts.isEmpty()) {
+-            visionParts.prepend(QJsonObject{{QStringLiteral("text"), QStringLiteral("Selected local frames for visual inspection; these are not the whole movie.")}});
+-            m_contents.push_back(QJsonObject{{QStringLiteral("role"), QStringLiteral("user")}, {QStringLiteral("parts"), visionParts}});
+-        }
+         sendTurn();
+         return;
+     }
+diff --git a/src/aiassistant/geminiagent.h b/src/aiassistant/geminiagent.h
+index ed223f4..0eb91bb 100644
+--- a/src/aiassistant/geminiagent.h
++++ b/src/aiassistant/geminiagent.h
+@@ -99,4 +99,5 @@ private:
+     bool m_attachToolImages{false};
+     int m_round{0};
+     int m_maxRounds{32};
++    quint64 m_requestEpoch{0};
+ };
