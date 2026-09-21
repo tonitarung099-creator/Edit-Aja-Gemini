@@ -17,9 +17,10 @@ editing paths.
 
 ## Credential behavior
 
-The provider core lives in `tools/gemini_provider/` and currently keeps
-credentials only in memory. Native secure persistence is a later UI/integration
-step.
+The provider core lives in `tools/gemini_provider/`. The native Qt Gemini
+integration is also intentionally memory-only today: API keys can be managed in
+the AI Agent sidebar, but they are not persisted to disk. OS-backed secure
+Windows persistence remains a separate follow-up.
 
 `GeminiKeyPool` deduplicates keys, enforces a maximum of 100 unique keys, masks
 keys for UI/log output, and tracks credential health.
@@ -58,15 +59,24 @@ standard keys. Keys must never be committed to GitHub.
 The native Windows integration should use OS-backed credential storage before
 persistent multi-key management is exposed in the packaged app.
 
-## Native integration plan
+## Native integration status
 
-1. Add a Gemini provider adapter to the existing AI Assistant transport.
-2. Add a Gemini section at the top of the right AI Agent panel.
-3. Add credential slots with masked display, label, optional project id, test
-   status, enable/disable state, and remove controls.
-4. Add `Test Selected` / `Test All` without exposing secret values.
-5. Populate the model dropdown from live model discovery.
-6. Route Gemini tool/function calls into the existing native tool registry.
-7. Keep Film Context escalation text-first and frame-limited.
-8. Run source reconstruction, targeted tests, Windows compile, packaging, and
-   packaged-app smoke verification before calling the integration complete.
+The built-in right-side AI Agent now has a native Qt Gemini transport, a masked
+multi-key credential manager with optional project IDs, live model discovery,
+and direct Gemini function calling into the existing `kdenlive_*` registry.
+Film Context remains text-first and frame-limited.
+
+The native transport has passed source reconstruction, Windows compilation,
+packaging, installer startup smoke, and functional packaged-editor smoke tests.
+
+Hardening rules:
+
+- Cancel invalidates the current request epoch before aborting the network reply,
+  so stale callbacks cannot rotate credentials or surface a false API error.
+- Native requests leave Gemini sampling at the model default instead of forcing
+  `temperature`, which is important for current Gemini 3.x models and future
+  models that reject deprecated sampling parameters.
+- Tool function responses and selected visual frames are returned in one user
+  turn rather than two consecutive user turns.
+- API keys remain memory-only until OS-backed Windows credential storage is
+  implemented.
