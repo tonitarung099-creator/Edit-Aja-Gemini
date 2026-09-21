@@ -1,6 +1,6 @@
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('install-deps', 'build', 'install-packager', 'package')]
+    [ValidateSet('install-deps', 'build', 'package')]
     [string]$Mode
 )
 
@@ -29,10 +29,6 @@ switch ($Mode) {
         # Dependencies may use KDE's binary cache, but the modified application
         # itself must always be compiled from our prepared source.
         $arguments = @('--ci-mode', '--buildtype', $env:CRAFT_BUILD_TYPE, '--no-cache', $package)
-        $maxAttempts = 1
-    }
-    'install-packager' {
-        $arguments = @('--ci-mode', '--buildtype', $env:CRAFT_BUILD_TYPE, '--use-cache', '--update', 'nsis')
         $maxAttempts = 1
     }
     'package' {
