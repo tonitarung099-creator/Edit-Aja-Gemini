@@ -6,7 +6,6 @@ from pathlib import Path
 import info
 from Blueprints.CraftPackageObject import CraftPackageObject
 from CraftCore import CraftCore
-from Packager.NullsoftInstallerPackager import NullsoftInstallerPackager
 
 
 UPSTREAM_COMMIT = "c3d8a38c04470f6726b21485fc488f2cd2921654"
@@ -104,9 +103,8 @@ class Package(CraftPackageObject.get("kde").pattern):
         return super().configure()
 
     def createPackage(self):
-        # Reuse Kdenlive's packaging exclusion rules while branding the package
-        # and Windows shortcut as Update P5 Edit Aja. The executable remains kdenlive.exe
-        # internally in this first build for maximum compatibility.
+        # Reuse Kdenlive's packaging exclusion rules for the portable archive.
+        # The executable remains kdenlive.exe internally for upstream compatibility.
         upstream_blueprint = self.blueprintDir().parent / "kdenlive"
         upstream_exclude = upstream_blueprint / "exclude.list"
         if upstream_exclude.exists():
@@ -117,18 +115,4 @@ class Package(CraftPackageObject.get("kde").pattern):
         self.defines["appname"] = "editaja"
         self.defines["icon"] = self.sourceDir() / "data/icons/kdenlive.ico"
         self.defines["icon_png"] = self.sourceDir() / "data/icons/256-apps-kdenlive.png"
-        self.defines["shortcuts"] = [
-            {"name": "Update P5 Edit Aja", "target": "bin/kdenlive.exe", "description": self.subinfo.description}
-        ]
-        self.defines["file_types"] = [".kdenlive"]
-
-        if isinstance(self, NullsoftInstallerPackager):
-            self.defines["registry_hook"] = (
-                'WriteRegStr SHCTX "Software\\Classes\\.kdenlive" "" "EditAja"\n'
-                'WriteRegStr SHCTX "Software\\Classes\\EditAja" "" "Update P5 Edit Aja project"\n'
-                'WriteRegStr SHCTX "Software\\Classes\\EditAja\\DefaultIcon" "" "$INSTDIR\\kdenlive.ico"\n'
-                'WriteRegStr SHCTX "Software\\Classes\\EditAja\\shell" "" "open"\n'
-                'WriteRegStr SHCTX "Software\\Classes\\EditAja\\shell\\open\\command" "" \'"$INSTDIR\\bin\\kdenlive.exe" "%1"\'\n'
-            )
-
         return super().createPackage()
