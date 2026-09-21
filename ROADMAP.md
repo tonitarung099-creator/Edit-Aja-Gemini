@@ -132,9 +132,9 @@ GPU-heavy models should remain optional modules rather than mandatory editor dep
 - [x] Project-aware quota cooldown behavior for `429` responses.
 - [x] Dynamic Gemini model discovery through `models.list`.
 - [x] Unit coverage for key limits, masking, failure handling and pagination.
-- [ ] Native C++/Qt Gemini transport adapter in the built-in AI Agent.
+- [x] Native C++/Qt Gemini transport adapter in the built-in AI Agent.
 - [ ] Secure Windows credential persistence for multiple Gemini keys.
-- [ ] Gemini credential manager UI at the top of the right AI Agent sidebar.
-- [ ] Live model dropdown populated from the Gemini API.
-- [ ] Gemini tool/function-call bridge to the existing native `kdenlive_*` registry.
-- [ ] Windows compile, packaging, artifact and packaged-app smoke verification.
+- [x] Gemini credential manager UI at the top of the right AI Agent sidebar.
+- [x] Live model dropdown populated from the Gemini API.
+- [x] Gemini tool/function-call bridge to the existing native `kdenlive_*` registry.
+- [x] Windows compile, packaging, artifact and packaged-app smoke verification.\n- [x] Cancel-safe request epochs, default Gemini sampling, and single-turn tool-response vision handoff.
