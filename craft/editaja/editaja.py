@@ -17,7 +17,7 @@ class subinfo(info.infoclass):
         # url|branch|revision: an empty branch plus the full SHA pins the exact
         # upstream source used when Phase 5 was created.
         self.svnTargets["editaja"] = f"https://github.com/KDE/kdenlive.git||{UPSTREAM_COMMIT}"
-        self.patchToApply["editaja"] = [("phase5.patch", 2), ("build-fixes.patch", 1), ("phase6.patch", 1), ("phase12.patch", 1), ("phase13.patch", 1), ("phase14.patch", 1), ("phase15.patch", 1), ("subtitle-initialization.patch", 1), ("keyframe-api-compile-fix.patch", 1), ("save-project-agent.patch", 1), ("ai-agent-sidebar.patch", 1), ("gemini-native.patch", 1)]
+        self.patchToApply["editaja"] = [("phase5.patch", 2), ("build-fixes.patch", 1), ("phase6.patch", 1), ("phase12.patch", 1), ("phase13.patch", 1), ("phase14.patch", 1), ("phase15.patch", 1), ("subtitle-initialization.patch", 1), ("keyframe-api-compile-fix.patch", 1), ("save-project-agent.patch", 1), ("ai-agent-sidebar.patch", 1), ("gemini-native.patch", 1), ("gemini-hardening.patch", 1)]
         self.defaultTarget = "editaja"
         self.description = "Expanded AI-assisted video editor based on Edit Aja and Kdenlive"
         self.webpage = "https://github.com/tonitarung099-creator/Update-P5-Edit-Aja"
@@ -83,7 +83,7 @@ class Package(CraftPackageObject.get("kde").pattern):
         ]
 
     def configure(self):
-        # Craft has already fetched the pinned source and applied Phase 5, build fixes, Phase 6, Phase 12, Phase 13, Phase 14, Phase 15, the keyframe API compatibility fix, the native save-copy fix, the primary AI Agent sidebar fix and the Gemini-native AI Agent patch here.
+        # Craft has already fetched the pinned source and applied Phase 5, build fixes, Phase 6, Phase 12, Phase 13, Phase 14, Phase 15, the keyframe API compatibility fix, the native save-copy fix, the primary AI Agent sidebar fix, the Gemini-native AI Agent patch and its hardening patch here.
         film_context_source = self.blueprintDir() / "film_context.txt"
         if not film_context_source.exists():
             return False
