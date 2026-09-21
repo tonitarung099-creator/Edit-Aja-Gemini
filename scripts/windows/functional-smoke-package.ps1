@@ -12,18 +12,12 @@ if (-not (Test-Path $fixtureSource -PathType Leaf)) {
     throw "Functional smoke project fixture not found: $fixtureSource"
 }
 
-$installers = @(
-    Get-ChildItem $packageRoot -File -Filter '*.exe' |
-        Where-Object { $_.Name -match 'edit.?aja' } |
-        Sort-Object Length -Descending
-)
-if ($installers.Count -eq 0) {
-    throw 'No Edit Aja NSIS installer was found in artifacts/windows.'
+$portableZip = Join-Path $packageRoot 'Edit-Aja-Gemini-Windows-Portable-x64.zip'
+if (-not (Test-Path $portableZip -PathType Leaf)) {
+    throw "Portable Windows ZIP not found: $portableZip"
 }
 
-$installer = $installers[0]
-$requestedInstallRoot = Join-Path $env:RUNNER_TEMP 'editaja-functional-smoke-install'
-$installRegistryPath = 'HKCU:\Software\KDE e.V.\Update P5 Edit Aja'
+$portableRoot = Join-Path $env:RUNNER_TEMP 'editaja-functional-portable'
 $workRoot = Join-Path $env:RUNNER_TEMP 'editaja-functional-smoke'
 $projectPath = Join-Path $workRoot 'input.kdenlive'
 $savedProjectPath = Join-Path $workRoot 'saved-copy.kdenlive'
@@ -32,24 +26,11 @@ $discoveryPath = Join-Path $env:TEMP 'kdenlive-open-agent.json'
 $diagnostics = Join-Path (Get-Location) 'artifacts/smoke/functional'
 $appStdout = Join-Path $env:RUNNER_TEMP 'editaja-functional-stdout.txt'
 $appStderr = Join-Path $env:RUNNER_TEMP 'editaja-functional-stderr.txt'
-$stage = 'install'
+$stage = 'extract'
 $status = 'FAIL'
 Remove-Item $appStdout, $appStderr -Force -ErrorAction SilentlyContinue
 
 $appProcess = $null
-$installedRoot = $null
-
-function Resolve-InstalledRoot {
-    if (-not (Test-Path -LiteralPath $installRegistryPath)) {
-        throw "Installer completed but CurrentUser registry key is missing: $installRegistryPath"
-    }
-    $root = "$((Get-ItemProperty -LiteralPath $installRegistryPath).Install_Dir)".Trim()
-    if (-not $root) {
-        throw "Installer registry key exists but Install_Dir is empty: $installRegistryPath"
-    }
-    return $root
-}
-
 function Invoke-AgentGet {
     param(
         [Parameter(Mandatory = $true)][string]$Url,
@@ -163,7 +144,7 @@ function Wait-ProjectLoaded {
 }
 
 try {
-    foreach ($path in @($requestedInstallRoot, $workRoot)) {
+    foreach ($path in @($portableRoot, $workRoot)) {
         if (Test-Path $path) {
             Remove-Item $path -Recurse -Force
         }
@@ -172,19 +153,119 @@ try {
     Copy-Item $fixtureSource $projectPath -Force
     Remove-Item $discoveryPath -Force -ErrorAction SilentlyContinue
 
-    Write-Host "Functional smoke installer: $($installer.FullName)"
-    $install = Start-Process -FilePath $installer.FullName -ArgumentList @('/S', '/CurrentUser', "/D=$requestedInstallRoot") -PassThru -Wait
-    if ($install.ExitCode -ne 0) {
-        throw "Silent installer exited with code $($install.ExitCode)."
+    Expand-Archive -LiteralPath $portableZip -DestinationPath $portableRoot -Force
+    $apps = @(
+        Get-ChildItem $portableRoot -Recurse -File -Filter 'kdenlive.exe' |
+            Where-Object { $_.FullName -match '[\\/]bin[\\/]kdenlive\.exe    $quotedProject = '"' + $projectPath + '"'
+    $stage = 'launch'
+    $appProcess = Start-Process -FilePath $app -ArgumentList @($quotedProject) -WorkingDirectory (Split-Path $app -Parent) -RedirectStandardOutput $appStdout -RedirectStandardError $appStderr -PassThru
+
+    $stage = 'bridge'
+    $discovery = Wait-AgentBridge -DiscoveryFile $discoveryPath
+    $baseUrl = "$($discovery.rest_base_url)"
+    $token = "$($discovery.token)"
+    Write-Host "REST bridge PASS: $baseUrl"
+
+    $stage = 'tool_catalog'
+    $catalog = Invoke-AgentGet -Url "$baseUrl/tools" -Token $token
+    $toolNames = @($catalog.tools | ForEach-Object { "$($_.name)" })
+    $requiredTools = @(
+        'kdenlive_get_project_info',
+        'kdenlive_get_timeline_state',
+        'kdenlive_cut_clip',
+        'kdenlive_add_subtitle',
+        'kdenlive_list_subtitles',
+        'kdenlive_save_project'
+    )
+    foreach ($required in $requiredTools) {
+        if ($toolNames -notcontains $required) {
+            throw "Native tool catalog is missing required functional-smoke tool: $required"
+        }
+    }
+    Write-Host "Native tool catalog PASS: $($requiredTools.Count) required tools are present."
+
+    $stage = 'project_load'
+    $project = Wait-ProjectLoaded -BaseUrl $baseUrl -Token $token -ExpectedPath $projectPath
+    Write-Host "Project load PASS: $($project.path), duration=$($project.duration_frames) frames."
+
+    $stage = 'timeline_split'
+    $before = Invoke-AgentTool -BaseUrl $baseUrl -Token $token -Name 'kdenlive_get_timeline_state' -Arguments @{ include_items = $true }
+    $clipsBefore = @($before.items | Where-Object { $_.kind -eq 'clip' -and [int]$_.duration_frames -ge 4 })
+    if ($clipsBefore.Count -eq 0) {
+        throw "Functional smoke project has no editable timeline clips: $($before | ConvertTo-Json -Depth 20 -Compress)"
     }
 
-    $installedRoot = Resolve-InstalledRoot
-    $app = Join-Path $installedRoot 'bin/kdenlive.exe'
-    if (-not (Test-Path $app -PathType Leaf)) {
-        throw "Installed application executable not found: $app"
+    $clip = $clipsBefore | Sort-Object @{ Expression = { [int]$_.duration_frames }; Descending = $true } | Select-Object -First 1
+    $cutFrame = [int]$clip.position_frame + [Math]::Floor([int]$clip.duration_frames / 2)
+    if ($cutFrame -le [int]$clip.position_frame -or $cutFrame -ge [int]$clip.end_frame) {
+        throw "Could not choose a valid cut frame for clip $($clip.id)."
     }
 
-    Write-Host "Launching packaged editor with functional project: $projectPath"
+    [void](Invoke-AgentTool -BaseUrl $baseUrl -Token $token -Name 'kdenlive_cut_clip' -Arguments @{ clip_id = [int]$clip.id; position_frame = $cutFrame })
+
+    $afterCut = Invoke-AgentTool -BaseUrl $baseUrl -Token $token -Name 'kdenlive_get_timeline_state' -Arguments @{ include_items = $true }
+    $clipCountBefore = @($before.items | Where-Object { $_.kind -eq 'clip' }).Count
+    $clipCountAfter = @($afterCut.items | Where-Object { $_.kind -eq 'clip' }).Count
+    if ($clipCountAfter -le $clipCountBefore) {
+        throw "Timeline cut did not increase clip count. Before=$clipCountBefore After=$clipCountAfter"
+    }
+    Write-Host "Timeline split PASS: clips $clipCountBefore -> $clipCountAfter."
+
+    $stage = 'subtitle_edit'
+    $subtitleText = 'P5 functional smoke subtitle'
+    [void](Invoke-AgentTool -BaseUrl $baseUrl -Token $token -Name 'kdenlive_add_subtitle' -Arguments @{ text = $subtitleText; start_seconds = 1.0; duration_seconds = 1.5; layer = 0 })
+
+    $subtitles = Invoke-AgentTool -BaseUrl $baseUrl -Token $token -Name 'kdenlive_list_subtitles'
+    $matchingSubtitle = @($subtitles.subtitles | Where-Object { $_.text -eq $subtitleText })
+    if ($matchingSubtitle.Count -ne 1) {
+        throw "Subtitle add/list verification failed: $($subtitles | ConvertTo-Json -Depth 20 -Compress)"
+    }
+    Write-Host 'Subtitle native edit PASS.'
+
+    $stage = 'save_copy'
+    # Keep the save-specific timeout while checking that the requested file is
+    # actually written. A longer timeout alone does not prove a successful save.
+    [void](Invoke-AgentTool -BaseUrl $baseUrl -Token $token -Name 'kdenlive_save_project' -Arguments @{ path = $savedProjectPath; save_copy = $true; overwrite = $true } -TimeoutSeconds 120)
+    if (-not (Test-Path $savedProjectPath -PathType Leaf)) {
+        throw "Native save tool reported success but project copy was not created: $savedProjectPath"
+    }
+    if ((Get-Item $savedProjectPath).Length -lt 1024) {
+        throw "Saved project copy is unexpectedly small: $((Get-Item $savedProjectPath).Length) bytes"
+    }
+
+    $projectAfterSave = Invoke-AgentTool -BaseUrl $baseUrl -Token $token -Name 'kdenlive_get_project_info'
+    $currentPath = [System.IO.Path]::GetFullPath("$($projectAfterSave.path)")
+    $originalPath = [System.IO.Path]::GetFullPath($projectPath)
+    if (-not $currentPath.Equals($originalPath, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "save_copy changed the active project path unexpectedly: $currentPath"
+    }
+
+    Write-Host "Project save-copy PASS: $savedProjectPath"
+    $status = 'PASS'
+    Write-Host 'FUNCTIONAL PORTABLE EDITOR SMOKE PASS: direct ZIP extraction, REST/native registry, project load, timeline split, subtitle edit, and project save-copy.'
+}
+finally {
+    Stop-SmokeProcessTree -Process $appProcess
+    try {
+        Export-SmokeDiagnostics -Directory $diagnostics -Stage $stage -Status $status -LogPaths @($appStdout, $appStderr) -DiscoveryFile $discoveryPath
+    }
+    catch { Write-Warning "Could not save smoke diagnostics: $($_.Exception.Message)" }
+
+    foreach ($root in @($portableRoot, $workRoot)) {
+        if ($root -and (Test-Path $root)) {
+            Remove-Item $root -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+    Remove-Item $discoveryPath -Force -ErrorAction SilentlyContinue
+}
+ }
+    )
+    if ($apps.Count -ne 1) {
+        throw "Expected exactly one portable bin/kdenlive.exe, found $($apps.Count)."
+    }
+    $app = $apps[0].FullName
+
+    Write-Host "Launching portable editor with functional project: $projectPath"
     $quotedProject = '"' + $projectPath + '"'
     $stage = 'launch'
     $appProcess = Start-Process -FilePath $app -ArgumentList @($quotedProject) -RedirectStandardOutput $appStdout -RedirectStandardError $appStderr -PassThru
