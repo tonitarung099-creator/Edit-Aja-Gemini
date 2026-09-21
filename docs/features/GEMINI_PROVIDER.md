@@ -17,10 +17,11 @@ editing paths.
 
 ## Credential behavior
 
-The provider core lives in `tools/gemini_provider/`. The native Qt Gemini
-integration is also intentionally memory-only today: API keys can be managed in
-the AI Agent sidebar, but they are not persisted to disk. OS-backed secure
-Windows persistence remains a separate follow-up.
+The provider core lives in `tools/gemini_provider/`. In Windows builds, the
+native Qt integration can store each Gemini API key as a separate
+`CRED_TYPE_GENERIC` entry in Windows Credential Manager. The user can disable
+secure persistence for newly added keys and keep them session-only instead.
+Raw API keys are never written to QSettings or project files.
 
 `GeminiKeyPool` deduplicates keys, enforces a maximum of 100 unique keys, masks
 keys for UI/log output, and tracks credential health.
@@ -56,8 +57,11 @@ Google's September 2026 API-key transition means the application should expect
 current Gemini authorization keys rather than relying on old unrestricted
 standard keys. Keys must never be committed to GitHub.
 
-The native Windows integration should use OS-backed credential storage before
-persistent multi-key management is exposed in the packaged app.
+Windows persistence uses the operating-system Credential Manager with
+`CRED_PERSIST_LOCAL_MACHINE`, so keys stay associated with the current Windows
+user on the same PC instead of being written to application settings. Each key
+uses a target name derived from a SHA-256 digest, so the target identifier itself
+does not expose the API secret.
 
 ## Native integration status
 
@@ -78,5 +82,7 @@ Hardening rules:
   models that reject deprecated sampling parameters.
 - Tool function responses and selected visual frames are returned in one user
   turn rather than two consecutive user turns.
-- API keys remain memory-only until OS-backed Windows credential storage is
-  implemented.
+- Windows builds can remember keys in Windows Credential Manager; users can
+  leave secure persistence disabled for session-only keys.
+- Saved keys are enumerated and restored on startup, remain masked in the UI,
+  and are removed from Credential Manager when the user removes them.

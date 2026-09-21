@@ -6,7 +6,6 @@ from pathlib import Path
 import info
 from Blueprints.CraftPackageObject import CraftPackageObject
 from CraftCore import CraftCore
-from Packager.NullsoftInstallerPackager import NullsoftInstallerPackager
 
 
 UPSTREAM_COMMIT = "c3d8a38c04470f6726b21485fc488f2cd2921654"
@@ -17,7 +16,7 @@ class subinfo(info.infoclass):
         # url|branch|revision: an empty branch plus the full SHA pins the exact
         # upstream source used when Phase 5 was created.
         self.svnTargets["editaja"] = f"https://github.com/KDE/kdenlive.git||{UPSTREAM_COMMIT}"
-        self.patchToApply["editaja"] = [("phase5.patch", 2), ("build-fixes.patch", 1), ("phase6.patch", 1), ("phase12.patch", 1), ("phase13.patch", 1), ("phase14.patch", 1), ("phase15.patch", 1), ("subtitle-initialization.patch", 1), ("keyframe-api-compile-fix.patch", 1), ("save-project-agent.patch", 1), ("ai-agent-sidebar.patch", 1), ("gemini-native.patch", 1), ("gemini-hardening.patch", 1)]
+        self.patchToApply["editaja"] = [("phase5.patch", 2), ("build-fixes.patch", 1), ("phase6.patch", 1), ("phase12.patch", 1), ("phase13.patch", 1), ("phase14.patch", 1), ("phase15.patch", 1), ("subtitle-initialization.patch", 1), ("keyframe-api-compile-fix.patch", 1), ("save-project-agent.patch", 1), ("ai-agent-sidebar.patch", 1), ("gemini-native.patch", 1), ("gemini-hardening.patch", 1), ("gemini-credential-storage.patch", 1)]
         self.defaultTarget = "editaja"
         self.description = "Expanded AI-assisted video editor based on Edit Aja and Kdenlive"
         self.webpage = "https://github.com/tonitarung099-creator/Update-P5-Edit-Aja"
@@ -83,7 +82,7 @@ class Package(CraftPackageObject.get("kde").pattern):
         ]
 
     def configure(self):
-        # Craft has already fetched the pinned source and applied Phase 5, build fixes, Phase 6, Phase 12, Phase 13, Phase 14, Phase 15, the keyframe API compatibility fix, the native save-copy fix, the primary AI Agent sidebar fix, the Gemini-native AI Agent patch and its hardening patch here.
+        # Craft has already fetched the pinned source and applied Phase 5, build fixes, Phase 6, Phase 12, Phase 13, Phase 14, Phase 15, the keyframe API compatibility fix, the native save-copy fix, the primary AI Agent sidebar fix, the Gemini-native AI Agent patch, its hardening patch and Windows secure credential storage patch here.
         film_context_source = self.blueprintDir() / "film_context.txt"
         if not film_context_source.exists():
             return False
@@ -104,9 +103,8 @@ class Package(CraftPackageObject.get("kde").pattern):
         return super().configure()
 
     def createPackage(self):
-        # Reuse Kdenlive's packaging exclusion rules while branding the package
-        # and Windows shortcut as Update P5 Edit Aja. The executable remains kdenlive.exe
-        # internally in this first build for maximum compatibility.
+        # Reuse Kdenlive's packaging exclusion rules for the portable archive.
+        # The executable remains kdenlive.exe internally for upstream compatibility.
         upstream_blueprint = self.blueprintDir().parent / "kdenlive"
         upstream_exclude = upstream_blueprint / "exclude.list"
         if upstream_exclude.exists():
@@ -117,18 +115,4 @@ class Package(CraftPackageObject.get("kde").pattern):
         self.defines["appname"] = "editaja"
         self.defines["icon"] = self.sourceDir() / "data/icons/kdenlive.ico"
         self.defines["icon_png"] = self.sourceDir() / "data/icons/256-apps-kdenlive.png"
-        self.defines["shortcuts"] = [
-            {"name": "Update P5 Edit Aja", "target": "bin/kdenlive.exe", "description": self.subinfo.description}
-        ]
-        self.defines["file_types"] = [".kdenlive"]
-
-        if isinstance(self, NullsoftInstallerPackager):
-            self.defines["registry_hook"] = (
-                'WriteRegStr SHCTX "Software\\Classes\\.kdenlive" "" "EditAja"\n'
-                'WriteRegStr SHCTX "Software\\Classes\\EditAja" "" "Update P5 Edit Aja project"\n'
-                'WriteRegStr SHCTX "Software\\Classes\\EditAja\\DefaultIcon" "" "$INSTDIR\\kdenlive.ico"\n'
-                'WriteRegStr SHCTX "Software\\Classes\\EditAja\\shell" "" "open"\n'
-                'WriteRegStr SHCTX "Software\\Classes\\EditAja\\shell\\open\\command" "" \'"$INSTDIR\\bin\\kdenlive.exe" "%1"\'\n'
-            )
-
         return super().createPackage()

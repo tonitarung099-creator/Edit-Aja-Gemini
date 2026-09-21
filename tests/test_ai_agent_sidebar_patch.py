@@ -36,9 +36,14 @@ class AiAgentSidebarPatchTests(unittest.TestCase):
         )
         self.assertNotIn("m_aiAssistantDock->close();", added)
 
-    def test_sidebar_patch_is_last_and_copied_to_craft(self):
-        entry = self.manifest["apply_chain"][-1]
-        self.assertEqual(entry["name"], "ai-agent-sidebar")
+    def test_sidebar_precedes_gemini_layers_and_is_copied_to_craft(self):
+        entries = self.manifest["apply_chain"]
+        names = [entry["name"] for entry in entries]
+        self.assertEqual(
+            names[-4:],
+            ["ai-agent-sidebar", "gemini-native", "gemini-hardening", "gemini-credential-storage"],
+        )
+        entry = entries[-4]
         self.assertEqual(entry["path"], "patches/ai-agent-sidebar.patch")
         self.assertTrue(entry["check"])
         payloads = {
@@ -50,7 +55,10 @@ class AiAgentSidebarPatchTests(unittest.TestCase):
             "craft/editaja/ai-agent-sidebar.patch",
         )
         chain = self.blueprint.split('self.patchToApply["editaja"] = ', 1)[1].split("\n", 1)[0]
-        self.assertTrue(chain.rstrip().endswith('("ai-agent-sidebar.patch", 1)]'))
+        self.assertIn(
+            '("ai-agent-sidebar.patch", 1), ("gemini-native.patch", 1), ("gemini-hardening.patch", 1), ("gemini-credential-storage.patch", 1)]',
+            chain,
+        )
 
 
 if __name__ == "__main__":

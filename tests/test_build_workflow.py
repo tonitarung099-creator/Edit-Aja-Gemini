@@ -1,4 +1,4 @@
-"""Static queue/scheduling contracts; GitHub execution is verified separately."""
+"""Static queue/scheduling and portable Windows packaging contracts."""
 
 import unittest
 from pathlib import Path
@@ -18,7 +18,6 @@ class WindowsBuildSchedulingTests(unittest.TestCase):
         cls.windows = cls.workflow["jobs"]["windows"]
 
     def test_unrelated_quality_runs_do_not_enter_windows_workflow(self):
-        # PyYAML uses YAML 1.1, where unquoted `on` is a boolean key.
         triggers = self.workflow.get("on", self.workflow.get(True))
         trigger = triggers["workflow_run"]
         self.assertEqual(trigger["workflows"], ["P5 Quality Gates"])
@@ -40,56 +39,76 @@ class WindowsBuildSchedulingTests(unittest.TestCase):
         self.assertEqual(queue["group"], "update-p5-edit-aja-windows")
         self.assertIs(queue["cancel-in-progress"], False)
 
-    def test_packaging_dependencies_are_checked_before_expensive_compile(self):
+    def test_portable_packaging_dependencies_are_checked_around_compile(self):
         commands = [step.get("run", "") for step in self.windows["steps"]]
-        install = commands.index("./scripts/windows/invoke-craft.ps1 -Mode install-packager")
         early = commands.index("./scripts/windows/prepare-package-images.ps1 -DependenciesOnly")
         compile_app = commands.index("./scripts/windows/invoke-craft.ps1 -Mode build")
         full = commands.index("./scripts/windows/prepare-package-images.ps1")
         package = commands.index("./scripts/windows/invoke-craft.ps1 -Mode package")
-        self.assertLess(install, early)
         self.assertLess(early, compile_app)
         self.assertLess(compile_app, full)
         self.assertLess(full, package)
+        self.assertNotIn("./scripts/windows/invoke-craft.ps1 -Mode install-packager", commands)
 
-    def test_both_preflight_modes_require_installer_tools(self):
-        wrapper = (ROOT / "scripts/windows/prepare-package-images.ps1").read_text()
-        self.assertIn("'--check-installer-tools'", wrapper)
+    def test_windows_build_is_portable_only(self):
+        workflow_text = (ROOT / ".github/workflows/build-windows.yml").read_text(encoding="utf-8")
+        craft_config = (ROOT / "scripts/configure_craft.py").read_text(encoding="utf-8")
+        invoke = (ROOT / "scripts/windows/invoke-craft.ps1").read_text(encoding="utf-8")
+        blueprint = (ROOT / "craft/editaja/editaja.py").read_text(encoding="utf-8")
+        wrapper = (ROOT / "scripts/windows/prepare-package-images.ps1").read_text(encoding="utf-8")
 
-    def test_packaged_app_smoke_follows_uploaded_artifact(self):
+        self.assertIn("PortablePackager", craft_config)
+        self.assertIn('"7ZipArchiveType": "zip"', craft_config)
+        self.assertNotIn("install-packager", workflow_text)
+        self.assertNotIn("install-packager", invoke)
+        self.assertNotIn("NullsoftInstallerPackager", blueprint)
+        self.assertNotIn("registry_hook", blueprint)
+        self.assertNotIn("--check-installer-tools", wrapper)
+
+    def test_portable_artifact_is_uploaded_before_smoke(self):
         names = [step["name"] for step in self.windows["steps"]]
-        collect = names.index("Collect Windows package")
-        upload = names.index("Upload Update P5 Edit Aja Windows package")
-        smoke = names.index("Smoke test packaged Windows installer and app")
+        collect = names.index("Collect Windows portable package")
+        upload = names.index("Upload Edit Aja Gemini Windows portable")
+        smoke = names.index("Smoke test portable Windows app")
         source = names.index("Upload verified corresponding source")
         self.assertLess(collect, upload)
         self.assertLess(upload, smoke)
         self.assertLess(smoke, source)
 
-    def test_packaged_app_smoke_installs_probes_starts_and_uninstalls(self):
-        script = (ROOT / "scripts/windows/smoke-test-package.ps1").read_text()
-        self.assertIn("'/S', '/CurrentUser'", script)
-        self.assertIn('"/D=$requestedInstallRoot"', script)
-        self.assertIn("'HKCU:\\Software\\KDE e.V.\\Update P5 Edit Aja'", script)
-        self.assertIn("Resolve-InstalledRoot", script)
-        self.assertIn("Install_Dir", script)
-        self.assertIn("'bin/kdenlive.exe'", script)
+        upload_step = self.windows["steps"][upload]
+        self.assertEqual(upload_step["with"]["name"], "Edit-Aja-Gemini-Windows-Portable-x64")
+
+    def test_startup_smoke_extracts_probes_and_starts_without_installing(self):
+        script = (ROOT / "scripts/windows/smoke-test-package.ps1").read_text(encoding="utf-8")
+        self.assertIn("Edit-Aja-Gemini-Windows-Portable-x64.zip", script)
+        self.assertIn("Expand-Archive", script)
+        self.assertIn("'kdenlive.exe'", script)
         self.assertIn("@('--version')", script)
         self.assertIn("$second -lt 15", script)
         self.assertIn("Assert-SmokeProcessRunning", script)
-        self.assertIn("'uninstall.exe'", script)
+        for forbidden in ("uninstall.exe", "/CurrentUser", "Install_Dir", "Resolve-InstalledRoot"):
+            self.assertNotIn(forbidden, script)
+
+    def test_collector_rejects_installer_artifacts(self):
+        script = (ROOT / "scripts/windows/collect-package.ps1").read_text(encoding="utf-8")
+        self.assertIn("Edit-Aja-Gemini-Windows-Portable-x64.zip", script)
+        self.assertIn("Get-FileHash", script)
+        self.assertIn("Portable artifact directory must not contain an installer EXE.", script)
+        self.assertNotIn("'.7z'", script)
 
     def test_functional_editor_smoke_runs_after_startup_smoke(self):
         names = [step["name"] for step in self.windows["steps"]]
-        startup = names.index("Smoke test packaged Windows installer and app")
+        startup = names.index("Smoke test portable Windows app")
         functional = names.index("Functional smoke test packaged editor")
         source = names.index("Upload verified corresponding source")
         self.assertLess(startup, functional)
         self.assertLess(functional, source)
 
-    def test_functional_editor_smoke_uses_live_native_registry(self):
-        script = (ROOT / "scripts/windows/functional-smoke-package.ps1").read_text()
+    def test_functional_editor_smoke_uses_live_native_registry_from_portable_zip(self):
+        script = (ROOT / "scripts/windows/functional-smoke-package.ps1").read_text(encoding="utf-8")
         for token in (
+            "Edit-Aja-Gemini-Windows-Portable-x64.zip",
+            "Expand-Archive",
             "kdenlive-open-agent.json",
             "kdenlive_get_project_info",
             "kdenlive_get_timeline_state",
@@ -98,9 +117,11 @@ class WindowsBuildSchedulingTests(unittest.TestCase):
             "kdenlive_list_subtitles",
             "kdenlive_save_project",
             "corresponding-source/tests/dataset/av.kdenlive",
-            "FUNCTIONAL EDITOR SMOKE PASS",
+            "FUNCTIONAL PORTABLE EDITOR SMOKE PASS",
         ):
             self.assertIn(token, script)
+        for forbidden in ("uninstall.exe", "/CurrentUser", "Install_Dir", "Resolve-InstalledRoot"):
+            self.assertNotIn(forbidden, script)
 
     def test_smoke_diagnostics_are_uploaded_even_after_test_failure(self):
         steps = self.windows["steps"]
@@ -112,7 +133,7 @@ class WindowsBuildSchedulingTests(unittest.TestCase):
         self.assertEqual(upload["with"]["retention-days"], 14)
 
     def test_functional_save_has_a_dedicated_timeout_and_timing_logs(self):
-        script = (ROOT / "scripts/windows/functional-smoke-package.ps1").read_text()
+        script = (ROOT / "scripts/windows/functional-smoke-package.ps1").read_text(encoding="utf-8")
         self.assertIn("[int]$TimeoutSeconds = 30", script)
         self.assertIn("Native tool call: $Name", script)
         self.assertIn("Native tool call complete: $Name", script)
@@ -122,7 +143,7 @@ class WindowsBuildSchedulingTests(unittest.TestCase):
         )
 
     def test_dependency_install_retries_transient_network_failures(self):
-        script = (ROOT / "scripts/windows/invoke-craft.ps1").read_text()
+        script = (ROOT / "scripts/windows/invoke-craft.ps1").read_text(encoding="utf-8")
         install_block = script.split("'install-deps' {", 1)[1].split("'build' {", 1)[0]
         self.assertIn("$maxAttempts = 3", install_block)
         self.assertIn("Craft dependency attempt", script)

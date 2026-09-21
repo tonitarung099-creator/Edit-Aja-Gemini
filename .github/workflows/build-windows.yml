@@ -1,4 +1,4 @@
-name: Build Update P5 Edit Aja for Windows
+name: Build Edit Aja Gemini Portable for Windows
 
 on:
   workflow_run:
@@ -58,41 +58,37 @@ jobs:
         shell: pwsh
         run: ./scripts/windows/invoke-craft.ps1 -Mode install-deps
 
-      - name: Install Windows packager
-        shell: pwsh
-        run: ./scripts/windows/invoke-craft.ps1 -Mode install-packager
-
-      - name: Check packaging dependencies before compilation
+      - name: Check portable packaging dependencies before compilation
         shell: pwsh
         run: ./scripts/windows/prepare-package-images.ps1 -DependenciesOnly
 
-      - name: Build Update P5 Edit Aja
+      - name: Build Edit Aja Gemini
         shell: pwsh
         run: ./scripts/windows/invoke-craft.ps1 -Mode build
 
-      - name: Prepare dependency images for packaging
+      - name: Prepare dependency images for portable packaging
         shell: pwsh
         run: ./scripts/windows/prepare-package-images.ps1
 
-      - name: Package Update P5 Edit Aja
+      - name: Package Edit Aja Gemini portable ZIP
         shell: pwsh
         run: ./scripts/windows/invoke-craft.ps1 -Mode package
 
-      - name: Collect Windows package
+      - name: Collect Windows portable package
         id: windows_package
         shell: pwsh
         run: ./scripts/windows/collect-package.ps1
 
-      - name: Upload Update P5 Edit Aja Windows package
+      - name: Upload Edit Aja Gemini Windows portable
         if: ${{ success() && steps.windows_package.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: Update-P5-Edit-Aja-Windows-x64
+          name: Edit-Aja-Gemini-Windows-Portable-x64
           path: artifacts/windows/*
           if-no-files-found: error
           retention-days: 14
 
-      - name: Smoke test packaged Windows installer and app
+      - name: Smoke test portable Windows app
         shell: pwsh
         run: ./scripts/windows/smoke-test-package.ps1
 
@@ -104,7 +100,7 @@ jobs:
         if: ${{ always() && steps.windows_package.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: Update-P5-Edit-Aja-Smoke-Diagnostics
+          name: Edit-Aja-Gemini-Portable-Smoke-Diagnostics
           path: artifacts/smoke/**
           if-no-files-found: warn
           retention-days: 14
@@ -113,7 +109,7 @@ jobs:
         if: ${{ always() && steps.corresponding_source.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
-          name: Update-P5-Edit-Aja-Source
+          name: Edit-Aja-Gemini-Source
           path: artifacts/Update-P5-Edit-Aja-Source.zip
           if-no-files-found: error
           retention-days: 14

@@ -44,12 +44,12 @@ class GeminiNativePatchTests(unittest.TestCase):
 
     def test_gemini_patch_follows_sidebar_and_precedes_hardening(self):
         names = [item["name"] for item in self.manifest["apply_chain"]]
-        self.assertEqual(names[-3:], ["ai-agent-sidebar", "gemini-native", "gemini-hardening"])
-        gemini_entry = self.manifest["apply_chain"][-2]
+        self.assertEqual(names[-4:], ["ai-agent-sidebar", "gemini-native", "gemini-hardening", "gemini-credential-storage"])
+        gemini_entry = self.manifest["apply_chain"][-3]
         self.assertEqual(gemini_entry["path"], "craft/editaja/gemini-native.patch")
         chain_line = self.blueprint.split('self.patchToApply["editaja"] = ', 1)[1].split("\n", 1)[0]
         self.assertIn(
-            '("ai-agent-sidebar.patch", 1), ("gemini-native.patch", 1), ("gemini-hardening.patch", 1)]',
+            '("ai-agent-sidebar.patch", 1), ("gemini-native.patch", 1), ("gemini-hardening.patch", 1), ("gemini-credential-storage.patch", 1)]',
             chain_line,
         )
 

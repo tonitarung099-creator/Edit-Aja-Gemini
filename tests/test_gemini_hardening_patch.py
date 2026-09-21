@@ -60,9 +60,9 @@ class GeminiHardeningPatchTests(unittest.TestCase):
 
     def test_build_chain_applies_hardening_after_native_gemini(self):
         names = [entry["name"] for entry in self.manifest["apply_chain"]]
-        self.assertEqual(names[-2:], ["gemini-native", "gemini-hardening"])
+        self.assertEqual(names[-3:], ["gemini-native", "gemini-hardening", "gemini-credential-storage"])
         self.assertEqual(
-            self.manifest["apply_chain"][-1]["path"],
+            self.manifest["apply_chain"][-2]["path"],
             "craft/editaja/gemini-hardening.patch",
         )
         payloads = {
@@ -76,7 +76,7 @@ class GeminiHardeningPatchTests(unittest.TestCase):
         chain = self.blueprint.split('self.patchToApply["editaja"] = ', 1)[1].split("\n", 1)[0]
         self.assertTrue(
             chain.rstrip().endswith(
-                '("gemini-native.patch", 1), ("gemini-hardening.patch", 1)]'
+                '("gemini-native.patch", 1), ("gemini-hardening.patch", 1), ("gemini-credential-storage.patch", 1)]'
             )
         )
 

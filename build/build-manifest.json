@@ -159,6 +159,13 @@
       "path": "craft/editaja/gemini-hardening.patch",
       "strip": 1,
       "check": true
+    },
+    {
+      "name": "gemini-credential-storage",
+      "path": "craft/editaja/gemini-credential-storage.patch",
+      "strip": 1,
+      "check": true,
+      "ignore_space_change": true
     }
   ],
   "blueprint_payloads": [
@@ -197,6 +204,10 @@
     {
       "source": "patches/gemini-hardening.patch",
       "destination": "craft/editaja/gemini-hardening.patch"
+    },
+    {
+      "source": "patches/gemini-credential-storage.patch",
+      "destination": "craft/editaja/gemini-credential-storage.patch"
     }
   ]
 }

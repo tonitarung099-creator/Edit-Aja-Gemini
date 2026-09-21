@@ -18,9 +18,13 @@ The repository retains the complete Phase 1–5 Edit Aja work:
 - shared native `kdenlive_*` editing tool registry,
 - project/timeline/media/effect/subtitle/render tools,
 - local transcription and silence/jump-cut primitives,
-- Edit Aja branding and Windows packaging workflow.
+- Edit Aja branding and a portable-only Windows packaging workflow.
 
 The internal `kdenlive_*` names intentionally remain for Phase 5 API compatibility.
+
+## Portable Windows build
+
+Windows releases are **portable only**. The build produces `Edit-Aja-Gemini-Windows-Portable-x64.zip`; there is no installer, uninstall program, registry hook, or file-association setup. Extract the ZIP to any writable folder and run the bundled `bin/kdenlive.exe` directly. The CI smoke tests use the same extract-and-run path.
 
 ## Gemini-first provider
 

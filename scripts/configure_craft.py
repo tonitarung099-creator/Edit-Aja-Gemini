@@ -20,7 +20,11 @@ def configure(path: Path) -> None:
         },
         # Craft itself creates/removes the subst mapping when Qt needs it.
         "ShortPath": {"DriveLetter": "Z:/"},
-        "Packager": {"UseCache": "True"},
+        "Packager": {
+            "UseCache": "True",
+            "PackageType": "PortablePackager",
+            "7ZipArchiveType": "zip",
+        },
     }
     for section, values in settings.items():
         if not config.has_section(section):
@@ -29,7 +33,7 @@ def configure(path: Path) -> None:
             config.set(section, key, value)
     with path.open("w", encoding="utf-8", newline="\n") as target:
         config.write(target)
-    print("Craft configured: MinGW x64, RelWithDebInfo, binary cache, Qt short drive Z:/")
+    print("Craft configured: MinGW x64, RelWithDebInfo, portable ZIP packaging, binary cache, Qt short drive Z:/")
 
 
 if __name__ == "__main__":

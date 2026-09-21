@@ -5,25 +5,16 @@ $PSNativeCommandUseErrorActionPreference = $true
 
 $packageRoot = Join-Path (Get-Location) 'artifacts/windows'
 $fixtureSource = Join-Path (Get-Location) 'corresponding-source/tests/dataset/av.kdenlive'
-if (-not (Test-Path $packageRoot)) {
-    throw "Windows package directory not found: $packageRoot"
+$portableZip = Join-Path $packageRoot 'Edit-Aja-Gemini-Windows-Portable-x64.zip'
+
+if (-not (Test-Path $portableZip -PathType Leaf)) {
+    throw "Portable Windows ZIP not found: $portableZip"
 }
 if (-not (Test-Path $fixtureSource -PathType Leaf)) {
     throw "Functional smoke project fixture not found: $fixtureSource"
 }
 
-$installers = @(
-    Get-ChildItem $packageRoot -File -Filter '*.exe' |
-        Where-Object { $_.Name -match 'edit.?aja' } |
-        Sort-Object Length -Descending
-)
-if ($installers.Count -eq 0) {
-    throw 'No Edit Aja NSIS installer was found in artifacts/windows.'
-}
-
-$installer = $installers[0]
-$requestedInstallRoot = Join-Path $env:RUNNER_TEMP 'editaja-functional-smoke-install'
-$installRegistryPath = 'HKCU:\Software\KDE e.V.\Update P5 Edit Aja'
+$portableRoot = Join-Path $env:RUNNER_TEMP 'editaja-functional-portable'
 $workRoot = Join-Path $env:RUNNER_TEMP 'editaja-functional-smoke'
 $projectPath = Join-Path $workRoot 'input.kdenlive'
 $savedProjectPath = Join-Path $workRoot 'saved-copy.kdenlive'
@@ -32,23 +23,9 @@ $discoveryPath = Join-Path $env:TEMP 'kdenlive-open-agent.json'
 $diagnostics = Join-Path (Get-Location) 'artifacts/smoke/functional'
 $appStdout = Join-Path $env:RUNNER_TEMP 'editaja-functional-stdout.txt'
 $appStderr = Join-Path $env:RUNNER_TEMP 'editaja-functional-stderr.txt'
-$stage = 'install'
+$stage = 'extract'
 $status = 'FAIL'
-Remove-Item $appStdout, $appStderr -Force -ErrorAction SilentlyContinue
-
 $appProcess = $null
-$installedRoot = $null
-
-function Resolve-InstalledRoot {
-    if (-not (Test-Path -LiteralPath $installRegistryPath)) {
-        throw "Installer completed but CurrentUser registry key is missing: $installRegistryPath"
-    }
-    $root = "$((Get-ItemProperty -LiteralPath $installRegistryPath).Install_Dir)".Trim()
-    if (-not $root) {
-        throw "Installer registry key exists but Install_Dir is empty: $installRegistryPath"
-    }
-    return $root
-}
 
 function Invoke-AgentGet {
     param(
@@ -163,31 +140,33 @@ function Wait-ProjectLoaded {
 }
 
 try {
-    foreach ($path in @($requestedInstallRoot, $workRoot)) {
+    foreach ($path in @($portableRoot, $workRoot)) {
         if (Test-Path $path) {
             Remove-Item $path -Recurse -Force
         }
     }
+
     New-Item -ItemType Directory -Force $workRoot | Out-Null
     Copy-Item $fixtureSource $projectPath -Force
     Remove-Item $discoveryPath -Force -ErrorAction SilentlyContinue
+    Remove-Item $appStdout, $appStderr -Force -ErrorAction SilentlyContinue
 
-    Write-Host "Functional smoke installer: $($installer.FullName)"
-    $install = Start-Process -FilePath $installer.FullName -ArgumentList @('/S', '/CurrentUser', "/D=$requestedInstallRoot") -PassThru -Wait
-    if ($install.ExitCode -ne 0) {
-        throw "Silent installer exited with code $($install.ExitCode)."
+    Expand-Archive -LiteralPath $portableZip -DestinationPath $portableRoot -Force
+
+    $apps = @(
+        Get-ChildItem $portableRoot -Recurse -File -Filter 'kdenlive.exe' |
+            Where-Object { $_.FullName -match '[\\/]bin[\\/]kdenlive\.exe$' }
+    )
+    if ($apps.Count -ne 1) {
+        throw "Expected exactly one portable bin/kdenlive.exe, found $($apps.Count)."
     }
+    $app = $apps[0].FullName
+    $appDirectory = Split-Path $app -Parent
 
-    $installedRoot = Resolve-InstalledRoot
-    $app = Join-Path $installedRoot 'bin/kdenlive.exe'
-    if (-not (Test-Path $app -PathType Leaf)) {
-        throw "Installed application executable not found: $app"
-    }
-
-    Write-Host "Launching packaged editor with functional project: $projectPath"
+    Write-Host "Launching portable editor with functional project: $projectPath"
     $quotedProject = '"' + $projectPath + '"'
     $stage = 'launch'
-    $appProcess = Start-Process -FilePath $app -ArgumentList @($quotedProject) -RedirectStandardOutput $appStdout -RedirectStandardError $appStderr -PassThru
+    $appProcess = Start-Process -FilePath $app -ArgumentList @($quotedProject) -WorkingDirectory $appDirectory -RedirectStandardOutput $appStdout -RedirectStandardError $appStderr -PassThru
 
     $stage = 'bridge'
     $discovery = Wait-AgentBridge -DiscoveryFile $discoveryPath
@@ -252,8 +231,6 @@ try {
     Write-Host 'Subtitle native edit PASS.'
 
     $stage = 'save_copy'
-    # Keep the save-specific timeout while checking that the requested file is
-    # actually written. A longer timeout alone does not prove a successful save.
     [void](Invoke-AgentTool -BaseUrl $baseUrl -Token $token -Name 'kdenlive_save_project' -Arguments @{ path = $savedProjectPath; save_copy = $true; overwrite = $true } -TimeoutSeconds 120)
     if (-not (Test-Path $savedProjectPath -PathType Leaf)) {
         throw "Native save tool reported success but project copy was not created: $savedProjectPath"
@@ -271,27 +248,18 @@ try {
 
     Write-Host "Project save-copy PASS: $savedProjectPath"
     $status = 'PASS'
-    Write-Host 'FUNCTIONAL EDITOR SMOKE PASS: REST/native registry, project load, timeline split, subtitle edit, and project save-copy.'
+    Write-Host 'FUNCTIONAL PORTABLE EDITOR SMOKE PASS: direct ZIP extraction, REST/native registry, project load, timeline split, subtitle edit, and project save-copy.'
 }
 finally {
     Stop-SmokeProcessTree -Process $appProcess
     try {
         Export-SmokeDiagnostics -Directory $diagnostics -Stage $stage -Status $status -LogPaths @($appStdout, $appStderr) -DiscoveryFile $discoveryPath
     }
-    catch { Write-Warning "Could not save smoke diagnostics: $($_.Exception.Message)" }
-
-    if ($installedRoot) {
-        $uninstaller = Join-Path $installedRoot 'uninstall.exe'
-        if (Test-Path $uninstaller -PathType Leaf) {
-            Write-Host "Functional smoke uninstall: $installedRoot"
-            $uninstall = Start-Process -FilePath $uninstaller -ArgumentList @('/S', "_?=$installedRoot") -PassThru -Wait
-            if ($uninstall.ExitCode -ne 0) {
-                Write-Warning "Functional-smoke uninstaller exited with code $($uninstall.ExitCode)."
-            }
-        }
+    catch {
+        Write-Warning "Could not save smoke diagnostics: $($_.Exception.Message)"
     }
 
-    foreach ($root in @($installedRoot, $requestedInstallRoot, $workRoot)) {
+    foreach ($root in @($portableRoot, $workRoot)) {
         if ($root -and (Test-Path $root)) {
             Remove-Item $root -Recurse -Force -ErrorAction SilentlyContinue
         }
